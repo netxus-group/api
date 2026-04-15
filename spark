@@ -1,0 +1,31 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * CodeIgniter 4 CLI Tool - Netxus API
+ */
+
+// Valid PHP Version?
+$minPhpVersion = '8.1';
+if (version_compare(PHP_VERSION, $minPhpVersion, '<')) {
+    $message = sprintf(
+        'Your PHP version must be %s or higher to run CodeIgniter. Current version: %s',
+        $minPhpVersion,
+        PHP_VERSION
+    );
+    exit($message);
+}
+
+// Path constants
+define('FCPATH', __DIR__ . '/public' . DIRECTORY_SEPARATOR);
+
+// Load Paths config
+$pathsConfig = 'app/Config/Paths.php';
+require realpath($pathsConfig) ?: $pathsConfig;
+
+$paths = new Config\Paths();
+
+// Location of the framework bootstrap file
+require rtrim($paths->systemDirectory, '\\/ ') . DIRECTORY_SEPARATOR . 'Boot.php';
+
+exit(\CodeIgniter\Boot::bootSpark($paths));

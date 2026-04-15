@@ -1,0 +1,23 @@
+# Disable directory browsing
+Options All -Indexes
+
+# Prevent direct access to files/folders beginning with a period
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule (^\.|/\.) - [F]
+</IfModule>
+
+# Rewrite to index.php
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php/$1 [L]
+</IfModule>
+
+# Uploads directory (symlink or alias can override)
+<IfModule mod_headers.c>
+    <FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|ico)$">
+        Header set Cache-Control "public, max-age=604800"
+    </FilesMatch>
+</IfModule>
