@@ -18,7 +18,8 @@ $routes->set404Override(static function () {
         'status'  => 'error',
         'message' => 'Endpoint not found',
     ]);
-    return $response;
+    $response->send();
+    exit;
 });
 
 // ──────────────────────────────────────────────

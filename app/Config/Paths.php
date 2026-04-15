@@ -2,9 +2,7 @@
 
 namespace Config;
 
-use CodeIgniter\Config\Paths as BasePaths;
-
-class Paths extends BasePaths
+class Paths
 {
     public string $systemDirectory = __DIR__ . '/../../vendor/codeigniter4/framework/system';
     public string $appDirectory    = __DIR__ . '/..';
