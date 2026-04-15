@@ -1,16 +1,16 @@
-FROM php:8.1-apache
+FROM php:8.3-apache
 
 # System deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libzip-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
-        libonig-dev libxml2-dev unzip git curl \
+        libonig-dev libxml2-dev libicu-dev unzip git curl \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo pdo_mysql mysqli mbstring zip gd intl xml bcmath \
     && a2enmod rewrite headers \
     && rm -rf /var/lib/apt/lists/*
 
 # Composer
-COPY --from=composer:2 /usr/local/bin/composer /usr/local/bin/composer
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 
 # Apache: DocumentRoot → public/
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
