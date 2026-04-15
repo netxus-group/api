@@ -1,0 +1,164 @@
+name: Deploy API
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      upload_env:
+        description: "Generar y subir .env desde DB_* secrets"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: deploy-api
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate project files
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f composer.json ]; then
+            echo "::error::composer.json not found in repository root."
+            exit 1
+          fi
+
+          if [ ! -f public/index.php ]; then
+            echo "::error::public/index.php not found."
+            exit 1
+          fi
+
+      - name: Validate required secrets
+        shell: bash
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_PORT: ${{ secrets.FTP_PORT }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for var in FTP_SERVER FTP_USERNAME FTP_PASSWORD FTP_PORT DB_HOST DB_NAME DB_USER DB_PASSWORD; do
+            if [ -z "${!var:-}" ]; then
+              echo "::error::Missing required secret: $var"
+              exit 1
+            fi
+          done
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+          extensions: intl, mbstring, mysqli, pdo_mysql, gd, zip
+
+      - name: Install Composer dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+
+          if [ ! -d vendor ]; then
+            echo "::error::vendor directory not found after composer install."
+            exit 1
+          fi
+
+      - name: Prepare deployment package
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .deploy/api
+          mkdir -p .deploy/api
+
+          rsync -a ./ .deploy/api/ \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude '.deploy/' \
+            --exclude 'node_modules/' \
+            --exclude 'tests/' \
+            --exclude 'docs/' \
+            --exclude 'sql/' \
+            --exclude '.env' \
+            --exclude '.env.*' \
+            --exclude '*.log' \
+            --exclude '.DS_Store' \
+            --exclude '.dockerignore' \
+            --exclude 'Dockerfile' \
+            --exclude 'phpunit.xml*' \
+            --exclude '*.md'
+
+          mkdir -p .deploy/api/writable/cache .deploy/api/writable/logs .deploy/api/writable/session .deploy/api/writable/uploads
+
+          if [ ! -f .deploy/api/public/index.php ]; then
+            echo "::error::Deployment package is missing public/index.php."
+            exit 1
+          fi
+
+      - name: Generate .env from DB secrets (optional)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.upload_env == true }}
+        shell: bash
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          if [ -f .deploy/api/.env.example ]; then
+            cp .deploy/api/.env.example .deploy/api/.env
+          else
+            touch .deploy/api/.env
+          fi
+
+          escape_env_value() {
+            printf "%s" "$1" | sed "s/'/'\"'\"'/g"
+          }
+
+          append_env() {
+            local key="$1"
+            local value
+            value="$(escape_env_value "$2")"
+            printf "%s = '%s'\n" "$key" "$value" >> .deploy/api/.env
+          }
+
+          printf "\n# Injected by GitHub Actions deploy workflow\n" >> .deploy/api/.env
+          append_env "CI_ENVIRONMENT" "production"
+          append_env "database.default.hostname" "$DB_HOST"
+          append_env "database.default.database" "$DB_NAME"
+          append_env "database.default.username" "$DB_USER"
+          append_env "database.default.password" "$DB_PASSWORD"
+
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Deploy files to /public_html/api/
+        shell: bash
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_PORT: ${{ secrets.FTP_PORT }}
+        run: |
+          set -euo pipefail
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" -p "$FTP_PORT" "$FTP_SERVER" <<EOF
+          set ftp:passive-mode true
+          set ssl:verify-certificate no
+          set net:max-retries 2
+          set net:timeout 20
+          mirror -R --only-newer --parallel=4 --verbose ".deploy/api/" "/public_html/api/"
+          bye
+          EOF
