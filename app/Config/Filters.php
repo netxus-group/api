@@ -5,6 +5,7 @@ namespace Config;
 use CodeIgniter\Config\Filters as BaseFilters;
 use App\Filters\AuthFilter;
 use App\Filters\PortalAuthFilter;
+use App\Filters\PublicApiTokenFilter;
 use App\Filters\RoleFilter;
 use App\Filters\CorsFilter;
 
@@ -24,6 +25,7 @@ class Filters extends BaseFilters
         'performance'   => \CodeIgniter\Filters\PerformanceMetrics::class,
         'auth'          => AuthFilter::class,
         'portalAuth'    => PortalAuthFilter::class,
+        'publicApiToken'=> PublicApiTokenFilter::class,
         'role'          => RoleFilter::class,
         'cors'          => CorsFilter::class,
     ];

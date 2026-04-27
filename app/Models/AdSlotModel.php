@@ -19,7 +19,7 @@ class AdSlotModel extends Model
         'target_url', 'active', 'starts_at', 'ends_at',
     ];
 
-    protected $casts = [
+    protected array $casts = [
         'active'  => 'boolean',
         'content' => 'json-array',
     ];
@@ -29,18 +29,8 @@ class AdSlotModel extends Model
      */
     public function getByPlacement(string $placement): array
     {
-        $now = date('Y-m-d H:i:s');
-
-        return $this->where('active', 1)
+        return $this->baseActiveQuery()
             ->where('placement', $placement)
-            ->groupStart()
-                ->where('starts_at IS NULL')
-                ->orWhere('starts_at <=', $now)
-            ->groupEnd()
-            ->groupStart()
-                ->where('ends_at IS NULL')
-                ->orWhere('ends_at >=', $now)
-            ->groupEnd()
             ->findAll();
     }
 
@@ -49,11 +39,26 @@ class AdSlotModel extends Model
      */
     public function getAllActiveGrouped(): array
     {
-        $ads = $this->where('active', 1)->orderBy('placement')->findAll();
+        $ads = $this->baseActiveQuery()->orderBy('placement')->findAll();
         $grouped = [];
         foreach ($ads as $ad) {
             $grouped[$ad->placement][] = $ad;
         }
         return $grouped;
+    }
+
+    private function baseActiveQuery()
+    {
+        $now = date('Y-m-d H:i:s');
+
+        return $this->where('active', 1)
+            ->groupStart()
+                ->where('starts_at IS NULL')
+                ->orWhere('starts_at <=', $now)
+            ->groupEnd()
+            ->groupStart()
+                ->where('ends_at IS NULL')
+                ->orWhere('ends_at >=', $now)
+            ->groupEnd();
     }
 }

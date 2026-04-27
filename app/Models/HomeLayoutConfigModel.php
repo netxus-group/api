@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class HomeLayoutConfigModel extends Model
 {
-    protected $table         = 'home_layout_configs';
+    protected $table         = 'home_layout_config';
     protected $primaryKey    = 'id';
     protected $useAutoIncrement = false;
     protected $returnType    = 'array';
@@ -14,7 +14,7 @@ class HomeLayoutConfigModel extends Model
 
     protected $allowedFields = ['id', 'key', 'value'];
 
-    protected $casts = [
+    protected array $casts = [
         'value' => 'json-array',
     ];
 
@@ -35,12 +35,12 @@ class HomeLayoutConfigModel extends Model
         $existing = $this->where('key', $key)->first();
 
         if ($existing) {
-            $this->update($existing['id'], ['value' => json_encode($value)]);
+            $this->update($existing['id'], ['value' => $value]);
         } else {
             $this->insert([
                 'id'    => $this->generateUuid(),
                 'key'   => $key,
-                'value' => json_encode($value),
+                'value' => $value,
             ]);
         }
     }

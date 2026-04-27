@@ -15,12 +15,8 @@ class NewsletterSubscriberModel extends Model
     protected $useTimestamps = false;
 
     protected $allowedFields = [
-        'id', 'email', 'status', 'subscribed_at',
-        'unsubscribed_at', 'source', 'metadata',
-    ];
-
-    protected $casts = [
-        'metadata' => 'json-array',
+        'id', 'email', 'name', 'status', 'confirmation_token',
+        'confirmed_at', 'created_at', 'updated_at',
     ];
 
     /**
@@ -44,7 +40,7 @@ class NewsletterSubscriberModel extends Model
 
         $total = $builder->countAllResults(false);
 
-        $items = $builder->orderBy('subscribed_at', 'DESC')
+        $items = $builder->orderBy('created_at', 'DESC')
             ->limit($perPage, ($page - 1) * $perPage)
             ->findAll();
 

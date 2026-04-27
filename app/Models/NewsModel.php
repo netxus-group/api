@@ -15,15 +15,18 @@ class NewsModel extends Model
     protected $useTimestamps = true;
 
     protected $allowedFields = [
-        'id', 'slug', 'title', 'summary', 'content',
-        'hero_image', 'hero_image_id', 'status',
-        'publish_at', 'featured', 'author_id',
-        'created_by', 'reviewed_by', 'approved_at', 'active',
+        'id', 'slug', 'title', 'subtitle', 'excerpt', 'body',
+        'cover_image_url', 'author_id', 'status',
+        'featured', 'breaking', 'source_url', 'source_name',
+        'seo_title', 'seo_description', 'seo_keywords',
+        'published_at', 'scheduled_at',
+        'created_by', 'reviewed_by',
+        'view_count', 'share_count', 'deleted_at',
     ];
 
-    protected $casts = [
+    protected array $casts = [
         'featured' => 'boolean',
-        'active'   => 'boolean',
+        'breaking' => 'boolean',
     ];
 
     /**
@@ -61,7 +64,7 @@ class NewsModel extends Model
      */
     public function listFiltered(array $filters, int $page, int $perPage): array
     {
-        $builder = $this->where('active', 1);
+        $builder = $this->where('deleted_at', null);
 
         if (!empty($filters['status'])) {
             $builder->where('status', $filters['status']);
@@ -83,7 +86,7 @@ class NewsModel extends Model
             $search = $filters['search'];
             $builder->groupStart()
                 ->like('title', $search)
-                ->orLike('summary', $search)
+                ->orLike('excerpt', $search)
                 ->groupEnd();
         }
 
@@ -101,7 +104,7 @@ class NewsModel extends Model
      */
     public function listPublished(array $filters, int $page, int $perPage): array
     {
-        $builder = $this->where('active', 1)->where('status', 'published');
+        $builder = $this->where('news.deleted_at', null)->where('news.status', 'published');
 
         if (!empty($filters['categorySlug'])) {
             $builder->join('news_categories nc', 'nc.news_id = news.id')
@@ -120,18 +123,22 @@ class NewsModel extends Model
                 ->where('a.slug', $filters['authorSlug']);
         }
 
+        if (array_key_exists('featured', $filters) && $filters['featured'] !== null && $filters['featured'] !== '') {
+            $builder->where('news.featured', (int) ((bool) $filters['featured']));
+        }
+
         if (!empty($filters['search'])) {
             $search = $filters['search'];
             $builder->groupStart()
                 ->like('news.title', $search)
-                ->orLike('news.summary', $search)
+                ->orLike('news.excerpt', $search)
                 ->groupEnd();
         }
 
-        $total = $builder->countAllResults(false);
+        $total = $builder->select('news.id')->distinct()->countAllResults(false);
 
-        $items = $builder->select('news.*')
-            ->orderBy('news.publish_at', 'DESC')
+        $items = $builder->select('news.*')->distinct()
+            ->orderBy('news.published_at', 'DESC')
             ->limit($perPage, ($page - 1) * $perPage)
             ->find();
 
@@ -146,9 +153,9 @@ class NewsModel extends Model
         $now = date('Y-m-d H:i:s');
 
         return $this->where('status', 'scheduled')
-            ->where('publish_at IS NOT NULL')
-            ->where('publish_at <=', $now)
-            ->where('active', 1)
+            ->where('scheduled_at IS NOT NULL')
+            ->where('scheduled_at <=', $now)
+            ->where('deleted_at', null)
             ->set(['status' => 'published'])
             ->update();
     }
@@ -160,7 +167,7 @@ class NewsModel extends Model
     {
         $news = $this->where('slug', $slug)
             ->where('status', 'published')
-            ->where('active', 1)
+            ->where('deleted_at', null)
             ->first();
 
         if (!$news) {

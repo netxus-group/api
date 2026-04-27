@@ -36,7 +36,7 @@ class MetricsService
 
         $statusCounts = $db->table('news')
             ->select('status, COUNT(*) as count')
-            ->where('active', 1)
+            ->where('deleted_at IS NULL')
             ->groupBy('status')
             ->get()->getResultArray();
 
@@ -55,7 +55,7 @@ class MetricsService
             'totalAuthors'    => $authorModel->where('active', 1)->countAllResults(),
             'totalCategories' => $catModel->where('active', 1)->countAllResults(),
             'totalTags'       => $tagModel->where('active', 1)->countAllResults(),
-            'featuredCount'   => $newsModel->where('active', 1)->where('featured', 1)->countAllResults(),
+            'featuredCount'   => $newsModel->where('deleted_at', null)->where('featured', 1)->countAllResults(),
         ];
     }
 
@@ -71,14 +71,14 @@ class MetricsService
 
         // Recent subscriptions in range
         $recentSubs = $db->table('newsletter_subscribers')
-            ->where('subscribed_at >=', $from)
-            ->where('subscribed_at <=', $to)
+            ->where('created_at >=', $from)
+            ->where('created_at <=', $to)
             ->countAllResults();
 
         // Last 7 days
         $weekAgo = date('Y-m-d H:i:s', strtotime('-7 days'));
         $last7d  = $db->table('newsletter_subscribers')
-            ->where('subscribed_at >=', $weekAgo)
+            ->where('created_at >=', $weekAgo)
             ->countAllResults();
 
         return [
@@ -146,10 +146,10 @@ class MetricsService
         // Daily subscriptions
         $db = \Config\Database::connect();
         $dailySubs = $db->table('newsletter_subscribers')
-            ->select('DATE(subscribed_at) as date, COUNT(*) as count')
-            ->where('subscribed_at >=', $from)
-            ->where('subscribed_at <=', $to)
-            ->groupBy('DATE(subscribed_at)')
+            ->select('DATE(created_at) as date, COUNT(*) as count')
+            ->where('created_at >=', $from)
+            ->where('created_at <=', $to)
+            ->groupBy('DATE(created_at)')
             ->get()->getResultArray();
 
         foreach ($dailySubs as $row) {
@@ -163,7 +163,7 @@ class MetricsService
         $dailyPubs = $db->table('news')
             ->select('DATE(created_at) as date, COUNT(*) as count')
             ->where('status', 'published')
-            ->where('active', 1)
+            ->where('deleted_at IS NULL')
             ->where('created_at >=', $from)
             ->where('created_at <=', $to)
             ->groupBy('DATE(created_at)')

@@ -8,17 +8,15 @@ class News extends Entity
 {
     protected $casts = [
         'featured' => 'boolean',
-        'active'   => 'boolean',
+        'breaking' => 'boolean',
     ];
 
     protected $datamap = [
-        'heroImage'   => 'hero_image',
-        'heroImageId' => 'hero_image_id',
+        'heroImage'   => 'cover_image_url',
         'authorId'    => 'author_id',
         'createdBy'   => 'created_by',
         'reviewedBy'  => 'reviewed_by',
-        'approvedAt'  => 'approved_at',
-        'publishAt'   => 'publish_at',
+        'publishAt'   => 'published_at',
     ];
 
     /**

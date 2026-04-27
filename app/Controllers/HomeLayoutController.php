@@ -16,21 +16,47 @@ class HomeLayoutController extends BaseApiController
 
     public function show()
     {
-        $layout = $this->model->getByKey('home_layout');
-        return ApiResponse::ok($layout);
+        return ApiResponse::ok($this->readPayload());
+    }
+
+    /**
+     * Backward-compatible alias for the route target declared in Routes.php.
+     */
+    public function index()
+    {
+        return $this->show();
     }
 
     public function update()
     {
         $data = $this->getJsonInput();
 
-        if (empty($data['sections']) || !is_array($data['sections'])) {
-            return ApiResponse::badRequest('Sections array is required');
+        if (!is_array($data) || $data === []) {
+            return ApiResponse::badRequest('Layout payload is required');
         }
 
-        $this->model->upsertByKey('home_layout', $data['sections'], $this->userId());
-        $layout = $this->model->getByKey('home_layout');
+        $this->model->upsertByKey('home_layout', $data);
 
-        return ApiResponse::ok($layout, 'Home layout updated');
+        return ApiResponse::ok($this->readPayload(), 'Home layout updated');
+    }
+
+    /**
+     * @return array{config: array<string, mixed>, updatedAt: string|null}
+     */
+    private function readPayload(): array
+    {
+        $row = $this->model->where('key', 'home_layout')->first();
+
+        if ($row && is_array($row['value'] ?? null)) {
+            return [
+                'config' => $row['value'],
+                'updatedAt' => $row['updated_at'] ?? null,
+            ];
+        }
+
+        return [
+            'config' => $this->model->defaultLayout(),
+            'updatedAt' => null,
+        ];
     }
 }

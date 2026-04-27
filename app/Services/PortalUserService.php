@@ -386,6 +386,7 @@ class PortalUserService
             ->select('news.*')
             ->whereIn('id', $newsIds)
             ->where('status', 'published')
+            ->where('deleted_at IS NULL')
             ->get()
             ->getResultArray();
 

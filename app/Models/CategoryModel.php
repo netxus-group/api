@@ -18,7 +18,7 @@ class CategoryModel extends Model
         'id', 'slug', 'name', 'active',
     ];
 
-    protected $casts = [
+    protected array $casts = [
         'active' => 'boolean',
     ];
 

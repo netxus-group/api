@@ -15,20 +15,25 @@ class EngagementEventModel extends Model
     protected $updatedField  = '';
 
     protected $allowedFields = [
-        'id', 'event_type', 'news_id', 'source', 'metadata',
+        'id', 'entity_id', 'entity_type', 'event_type', 'ip_address', 'user_agent',
     ];
 
     /**
      * Track a view or click event.
      */
-    public function track(string $eventType, ?string $newsId, ?string $source = null, ?array $metadata = null): void
+    public function track(string $eventType, ?string $entityId, ?string $entityType = null, ?array $metadata = null): void
     {
+        $entityType = $entityType ?: 'news';
+        $ipAddress = is_array($metadata) ? ($metadata['ipAddress'] ?? null) : null;
+        $userAgent = is_array($metadata) ? ($metadata['userAgent'] ?? null) : null;
+
         $this->insert([
-            'id'         => $this->generateUuid(),
-            'event_type' => $eventType,
-            'news_id'    => $newsId,
-            'source'     => $source,
-            'metadata'   => $metadata ? json_encode($metadata) : null,
+            'id'          => $this->generateUuid(),
+            'entity_id'   => $entityId,
+            'entity_type' => $entityType,
+            'event_type'  => $eventType,
+            'ip_address'  => is_string($ipAddress) ? $ipAddress : null,
+            'user_agent'  => is_string($userAgent) ? $userAgent : null,
         ]);
     }
 
@@ -56,12 +61,13 @@ class EngagementEventModel extends Model
      */
     public function getTopContent(string $eventType, int $limit, string $from, string $to): array
     {
-        return $this->select('news_id, COUNT(*) as count')
+        return $this->select('entity_id as news_id, COUNT(*) as count')
             ->where('event_type', $eventType)
+            ->where('entity_type', 'news')
             ->where('created_at >=', $from)
             ->where('created_at <=', $to)
-            ->where('news_id IS NOT NULL')
-            ->groupBy('news_id')
+            ->where('entity_id IS NOT NULL')
+            ->groupBy('entity_id')
             ->orderBy('count', 'DESC')
             ->limit($limit)
             ->findAll();

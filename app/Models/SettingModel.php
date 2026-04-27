@@ -35,20 +35,41 @@ class SettingModel extends Model
     }
 
     /**
-     * Set a key-value pair.
+     * Set a key-value pair for global settings.
+     *
+     * Keeps CI4 Model::set() compatibility for query-builder usage.
+     *
+     * @param array|object|string               $key
+     * @param bool|float|int|object|string|null $value
+     * @param bool|string|null                  $escape
+     *
+     * @return $this
      */
-    public function set(string $key, string $value, string $group = 'general'): void
+    public function set($key, $value = '', $escape = null)
     {
+        // Preserve builder behavior when called like CodeIgniter\Model::set().
+        if (is_array($key) || is_object($key) || (is_bool($escape) || $escape === null) && !is_string($key)) {
+            return parent::set($key, $value, is_bool($escape) || $escape === null ? $escape : null);
+        }
+
+        if (!is_string($key)) {
+            return parent::set($key, $value, is_bool($escape) || $escape === null ? $escape : null);
+        }
+
+        $group    = is_string($escape) && $escape !== '' ? $escape : 'general';
         $existing = $this->where('key', $key)->first();
+        $val      = is_string($value) ? $value : (string) $value;
 
         if ($existing) {
-            $this->update($existing['id'], ['value' => $value]);
+            $this->update($existing['id'], ['value' => $val]);
         } else {
             $this->insert([
                 'key'   => $key,
-                'value' => $value,
+                'value' => $val,
                 'group' => $group,
             ]);
         }
+
+        return $this;
     }
 }

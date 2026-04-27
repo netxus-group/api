@@ -8,6 +8,7 @@ use App\Models\NewsTagModel;
 use App\Models\PostStatusHistoryModel;
 use App\Libraries\SlugGenerator;
 use App\Entities\News;
+use App\Support\AssetUrl;
 
 class NewsService
 {
@@ -38,20 +39,21 @@ class NewsService
             $status = 'draft';
         }
 
+        $publishAt = $data['publishAt'] ?? null;
+
         $newsData = [
-            'id'            => $id,
-            'slug'          => $slug,
-            'title'         => $data['title'],
-            'summary'       => $data['summary'],
-            'content'       => $data['content'],
-            'hero_image'    => $data['heroImage'] ?? null,
-            'hero_image_id' => $data['heroImageId'] ?? null,
-            'status'        => $status,
-            'publish_at'    => $data['publishAt'] ?? null,
-            'featured'      => ($userRole !== 'writer') ? ($data['featured'] ?? false) : false,
-            'author_id'     => $data['authorId'] ?? null,
-            'created_by'    => $userId,
-            'active'        => true,
+            'id'              => $id,
+            'slug'            => $slug,
+            'title'           => $data['title'],
+            'excerpt'         => $data['summary'],
+            'body'            => $data['content'],
+            'cover_image_url' => AssetUrl::normalize($data['heroImage'] ?? null),
+            'status'          => $status,
+            'published_at'    => $status === 'published' ? $publishAt : null,
+            'scheduled_at'    => $status === 'scheduled' ? $publishAt : null,
+            'featured'        => ($userRole !== 'writer') ? ($data['featured'] ?? false) : false,
+            'author_id'       => $data['authorId'] ?? null,
+            'created_by'      => $userId,
         ];
 
         $this->newsModel->insert($newsData);
@@ -78,7 +80,7 @@ class NewsService
     public function update(string $id, array $data, string $userId, string $userRole): array
     {
         $news = $this->newsModel->find($id);
-        if (!$news || !$news->active) {
+        if (!$news || !empty($news->deleted_at)) {
             throw new \RuntimeException('News not found', 404);
         }
 
@@ -106,19 +108,24 @@ class NewsService
         }
 
         $updateData = [];
-        $fields = ['title', 'summary', 'content', 'heroImage', 'heroImageId', 'authorId', 'status', 'featured', 'publishAt'];
+        $fields = ['title', 'summary', 'content', 'heroImage', 'authorId', 'status', 'featured', 'publishAt'];
 
         $fieldMap = [
-            'heroImage'   => 'hero_image',
-            'heroImageId' => 'hero_image_id',
+            'summary'     => 'excerpt',
+            'content'     => 'body',
+            'heroImage'   => 'cover_image_url',
             'authorId'    => 'author_id',
-            'publishAt'   => 'publish_at',
+            'publishAt'   => 'published_at',
         ];
 
         foreach ($fields as $field) {
             if (array_key_exists($field, $data)) {
                 $dbField = $fieldMap[$field] ?? $field;
-                $updateData[$dbField] = $data[$field];
+                $value = $data[$field];
+                if ($field === 'heroImage') {
+                    $value = AssetUrl::normalize(is_string($value) ? $value : null);
+                }
+                $updateData[$dbField] = $value;
             }
         }
 
@@ -126,7 +133,6 @@ class NewsService
         if ($newStatus !== $oldStatus) {
             if (in_array($newStatus, ['approved', 'published'], true)) {
                 $updateData['reviewed_by'] = $userId;
-                $updateData['approved_at'] = date('Y-m-d H:i:s');
             }
         }
 
@@ -161,7 +167,7 @@ class NewsService
     public function schedule(string $id, string $publishAt, string $userId, string $userRole): array
     {
         $news = $this->newsModel->find($id);
-        if (!$news || !$news->active) {
+        if (!$news || !empty($news->deleted_at)) {
             throw new \RuntimeException('News not found', 404);
         }
 
@@ -178,8 +184,8 @@ class NewsService
         $oldStatus = $news->status;
 
         $this->newsModel->update($id, [
-            'status'     => 'scheduled',
-            'publish_at' => $publishAt,
+            'status'       => 'scheduled',
+            'scheduled_at' => $publishAt,
         ]);
 
         $this->historyModel->logTransition($id, $oldStatus, 'scheduled', $userId);
@@ -193,7 +199,7 @@ class NewsService
     public function delete(string $id, string $userId, string $userRole): void
     {
         $news = $this->newsModel->find($id);
-        if (!$news || !$news->active) {
+        if (!$news || !empty($news->deleted_at)) {
             throw new \RuntimeException('News not found', 404);
         }
 
@@ -207,7 +213,7 @@ class NewsService
             }
         }
 
-        $this->newsModel->update($id, ['active' => false]);
+        $this->newsModel->update($id, ['deleted_at' => date('Y-m-d H:i:s')]);
     }
 
     private function generateUuid(): string

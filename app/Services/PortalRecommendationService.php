@@ -131,6 +131,7 @@ class PortalRecommendationService
         $candidateRows = $db->table('news')
             ->select('news.*')
             ->where('status', 'published')
+            ->where('deleted_at IS NULL')
             ->orderBy('created_at', 'DESC')
             ->limit(max($limit * 6, $this->config->candidateLimit))
             ->get()

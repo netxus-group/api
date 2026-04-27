@@ -25,21 +25,30 @@ class MetricsController extends BaseApiController
         return ApiResponse::ok($data);
     }
 
+    /**
+     * Backward-compatible alias for route target in Routes.php.
+     */
+    public function index()
+    {
+        return $this->dashboard();
+    }
+
     /** GET /api/v1/metrics/content */
     public function content()
     {
-        $range = $this->request->getGet('range') ?? 'last_week';
-        $from  = $this->request->getGet('from');
-        $to    = $this->request->getGet('to');
-
-        $data = $this->service->getContentMetrics($range, $from, $to);
+        $data = $this->service->getContentMetrics();
         return ApiResponse::ok($data);
     }
 
     /** GET /api/v1/metrics/newsletter */
     public function newsletter()
     {
-        $data = $this->service->getNewsletterMetrics();
+        $range = $this->request->getGet('range') ?? 'last_week';
+        $from  = $this->request->getGet('from');
+        $to    = $this->request->getGet('to');
+
+        [$fromDate, $toDate] = $this->resolveDateRange($range, $from, $to);
+        $data = $this->service->getNewsletterMetrics($fromDate, $toDate);
         return ApiResponse::ok($data);
     }
 
@@ -50,7 +59,8 @@ class MetricsController extends BaseApiController
         $from  = $this->request->getGet('from');
         $to    = $this->request->getGet('to');
 
-        $data = $this->service->getEngagementMetrics($range, $from, $to);
+        [$fromDate, $toDate] = $this->resolveDateRange($range, $from, $to);
+        $data = $this->service->getEngagementMetrics($fromDate, $toDate);
         return ApiResponse::ok($data);
     }
 
@@ -63,5 +73,32 @@ class MetricsController extends BaseApiController
 
         $data = $this->service->getDailyEngagement($range, $from, $to);
         return ApiResponse::ok($data);
+    }
+
+    /**
+     * Backward-compatible alias for route target in Routes.php.
+     */
+    public function dailyEngagement()
+    {
+        return $this->engagementDaily();
+    }
+
+    private function resolveDateRange(string $range, ?string $start, ?string $end): array
+    {
+        $to = date('Y-m-d 23:59:59');
+
+        return match ($range) {
+            'yesterday'  => [
+                date('Y-m-d 00:00:00', strtotime('-1 day')),
+                date('Y-m-d 23:59:59', strtotime('-1 day')),
+            ],
+            'last_week'  => [date('Y-m-d 00:00:00', strtotime('-7 days')), $to],
+            'last_month' => [date('Y-m-d 00:00:00', strtotime('-30 days')), $to],
+            'custom'     => [
+                $start ? $start . ' 00:00:00' : date('Y-m-d 00:00:00', strtotime('-30 days')),
+                $end ? $end . ' 23:59:59' : $to,
+            ],
+            default => [date('Y-m-d 00:00:00', strtotime('-7 days')), $to],
+        };
     }
 }

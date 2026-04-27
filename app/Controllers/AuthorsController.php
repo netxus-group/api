@@ -20,7 +20,7 @@ class AuthorsController extends BaseApiController
      */
     public function index()
     {
-        $authors = $this->model->getActive();
+        $authors = $this->model->orderBy('name', 'ASC')->findAll();
         return ApiResponse::ok(array_map(fn($a) => $a->toArray(), $authors));
     }
 
@@ -39,13 +39,13 @@ class AuthorsController extends BaseApiController
         $slug = SlugGenerator::generate($data['displayName'], 'authors', 'slug');
 
         $this->model->insert([
-            'id'           => $id,
-            'slug'         => $slug,
-            'display_name' => $data['displayName'],
-            'bio'          => $data['bio'] ?? null,
-            'avatar'       => $data['avatar'] ?? null,
-            'social_links' => isset($data['socialLinks']) ? json_encode($data['socialLinks']) : '[]',
-            'active'       => true,
+            'id'         => $id,
+            'slug'       => $slug,
+            'name'       => $data['displayName'],
+            'bio'        => $data['bio'] ?? null,
+            'avatar_url' => $data['avatar'] ?? null,
+            'social'     => isset($data['socialLinks']) ? json_encode($data['socialLinks']) : '[]',
+            'active'     => true,
         ]);
 
         $author = $this->model->find($id);
@@ -66,12 +66,12 @@ class AuthorsController extends BaseApiController
         $updateData = [];
 
         if (isset($data['displayName'])) {
-            $updateData['display_name'] = $data['displayName'];
+            $updateData['name'] = $data['displayName'];
             $updateData['slug'] = SlugGenerator::generate($data['displayName'], 'authors', 'slug', $id);
         }
         if (isset($data['bio']))         $updateData['bio']    = $data['bio'];
-        if (isset($data['avatar']))      $updateData['avatar'] = $data['avatar'];
-        if (isset($data['socialLinks'])) $updateData['social_links'] = json_encode($data['socialLinks']);
+        if (isset($data['avatar']))      $updateData['avatar_url'] = $data['avatar'];
+        if (isset($data['socialLinks'])) $updateData['social'] = json_encode($data['socialLinks']);
 
         if (!empty($updateData)) {
             $this->model->update($id, $updateData);

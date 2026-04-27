@@ -20,7 +20,7 @@ class MediaImageModel extends Model
         'marketing_meta', 'uploaded_by', 'active',
     ];
 
-    protected $casts = [
+    protected array $casts = [
         'marketing_meta' => 'json-array',
         'active'         => 'boolean',
     ];

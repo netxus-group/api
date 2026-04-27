@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\AssetUrl;
 use CodeIgniter\Database\BaseConnection;
 
 class PortalNewsSerializer
@@ -13,7 +14,7 @@ class PortalNewsSerializer
         $title = (string) ($row['title'] ?? '');
         $summary = (string) ($row['summary'] ?? $row['excerpt'] ?? '');
         $content = (string) ($row['content'] ?? $row['body'] ?? '');
-        $heroImage = $row['hero_image'] ?? $row['cover_image_url'] ?? null;
+        $heroImage = AssetUrl::normalize($row['hero_image'] ?? $row['cover_image_url'] ?? null);
         $publishAt = $row['publish_at'] ?? $row['published_at'] ?? null;
 
         $authorId = $row['author_id'] ?? null;
@@ -102,7 +103,6 @@ class PortalNewsSerializer
         $rows = $db->table('authors')
             ->select('id, slug, name, COALESCE(name, slug) as display_name')
             ->whereIn('id', $authorIds)
-            ->where('active', 1)
             ->get()
             ->getResultArray();
 

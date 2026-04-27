@@ -15,13 +15,13 @@ class AuthorModel extends Model
     protected $useTimestamps = true;
 
     protected $allowedFields = [
-        'id', 'slug', 'display_name', 'bio', 'avatar',
-        'social_links', 'active',
+        'id', 'slug', 'name', 'bio', 'avatar_url',
+        'social', 'active',
     ];
 
-    protected $casts = [
-        'social_links' => 'json-array',
-        'active'       => 'boolean',
+    protected array $casts = [
+        'social' => '?json-array',
+        'active' => 'boolean',
     ];
 
     /**
@@ -29,7 +29,7 @@ class AuthorModel extends Model
      */
     public function getActive(): array
     {
-        return $this->where('active', 1)->orderBy('display_name', 'ASC')->findAll();
+        return $this->where('active', 1)->orderBy('name', 'ASC')->findAll();
     }
 
     /**

@@ -32,7 +32,7 @@ class ExportService
                 $item->author_id ?? '',
                 $item->featured ? 'Yes' : 'No',
                 $item->created_at,
-                $item->publish_at ?? '',
+                $item->published_at ?? $item->scheduled_at ?? '',
             ]);
         }
 
@@ -67,7 +67,7 @@ class ExportService
             $sheet->setCellValue([4, $row], $item->status);
             $sheet->setCellValue([5, $row], $item->featured ? 'Yes' : 'No');
             $sheet->setCellValue([6, $row], $item->created_at);
-            $sheet->setCellValue([7, $row], $item->publish_at ?? '');
+            $sheet->setCellValue([7, $row], $item->published_at ?? $item->scheduled_at ?? '');
             $row++;
         }
 
@@ -101,7 +101,7 @@ class ExportService
             $lines[] = "Status:    {$item->status}";
             $lines[] = "Featured:  " . ($item->featured ? 'Yes' : 'No');
             $lines[] = "Created:   {$item->created_at}";
-            $lines[] = "Published: " . ($item->publish_at ?? 'N/A');
+            $lines[] = "Published: " . ($item->published_at ?? $item->scheduled_at ?? 'N/A');
             $lines[] = str_repeat('-', 40);
         }
 
@@ -128,7 +128,7 @@ class ExportService
             $html .= '<td>' . $item->status . '</td>';
             $html .= '<td>' . ($item->featured ? 'Yes' : 'No') . '</td>';
             $html .= '<td>' . substr($item->created_at ?? '', 0, 10) . '</td>';
-            $html .= '<td>' . substr($item->publish_at ?? '', 0, 10) . '</td>';
+            $html .= '<td>' . substr((string) ($item->published_at ?? $item->scheduled_at ?? ''), 0, 10) . '</td>';
             $html .= '</tr>';
         }
 
@@ -145,23 +145,24 @@ class ExportService
     /**
      * Export subscribers to CSV.
      */
-    public function subscribersToCsv(): string
+    public function subscribersToCsv(?array $subs = null): string
     {
-        $model = new NewsletterSubscriberModel();
-        $subs  = $model->orderBy('subscribed_at', 'DESC')->findAll();
+        if ($subs === null) {
+            $model = new NewsletterSubscriberModel();
+            $subs  = $model->orderBy('created_at', 'DESC')->findAll();
+        }
 
         $output = fopen('php://temp', 'r+');
         fwrite($output, "\xEF\xBB\xBF");
-        fputcsv($output, ['ID', 'Email', 'Status', 'Source', 'Subscribed At', 'Unsubscribed At']);
+        fputcsv($output, ['ID', 'Email', 'Status', 'Created At', 'Updated At']);
 
         foreach ($subs as $sub) {
             fputcsv($output, [
                 $sub->id,
                 $sub->email,
                 $sub->status,
-                $sub->source ?? '',
-                $sub->subscribed_at ?? '',
-                $sub->unsubscribed_at ?? '',
+                $sub->created_at ?? '',
+                $sub->updated_at ?? '',
             ]);
         }
 
@@ -198,7 +199,7 @@ class ExportService
     private function getNewsData(array $filters = []): array
     {
         $model   = new NewsModel();
-        $builder = $model->where('active', 1);
+        $builder = $model->where('deleted_at', null);
 
         if (!empty($filters['status'])) {
             $builder->where('status', $filters['status']);

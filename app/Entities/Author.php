@@ -7,12 +7,13 @@ use CodeIgniter\Entity\Entity;
 class Author extends Entity
 {
     protected $casts = [
-        'active'       => 'boolean',
-        'social_links' => 'json-array',
+        'active' => 'boolean',
+        'social' => '?json-array',
     ];
 
     protected $datamap = [
-        'displayName' => 'display_name',
-        'socialLinks' => 'social_links',
+        'displayName' => 'name',
+        'avatar' => 'avatar_url',
+        'socialLinks' => 'social',
     ];
 }

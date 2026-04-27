@@ -36,16 +36,12 @@ class CorsFilter implements FilterInterface
 
     private function setHeaders(ResponseInterface $response, Cors $config, string $origin): void
     {
-        $allowed = $config->allowedOrigins;
+        $allowed = array_map([Cors::class, 'normalizeOrigin'], $config->allowedOrigins);
+        $normalizedOrigin = Cors::normalizeOrigin($origin);
 
-        if (in_array('*', $allowed, true) || in_array($origin, $allowed, true)) {
-            $effectiveOrigin = $origin ?: '*';
-        } else {
-            $effectiveOrigin = '';
-        }
-
-        if ($effectiveOrigin) {
-            $response->setHeader('Access-Control-Allow-Origin', $effectiveOrigin);
+        if ($normalizedOrigin !== '' && in_array($normalizedOrigin, $allowed, true)) {
+            $response->setHeader('Access-Control-Allow-Origin', $normalizedOrigin);
+            $response->setHeader('Vary', 'Origin');
         }
 
         $response->setHeader('Access-Control-Allow-Methods', implode(', ', $config->allowedMethods));

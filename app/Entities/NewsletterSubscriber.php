@@ -6,12 +6,8 @@ use CodeIgniter\Entity\Entity;
 
 class NewsletterSubscriber extends Entity
 {
-    protected $casts = [
-        'metadata' => 'json-array',
-    ];
-
     protected $datamap = [
-        'subscribedAt'   => 'subscribed_at',
-        'unsubscribedAt' => 'unsubscribed_at',
+        'subscribedAt'   => 'created_at',
+        'unsubscribedAt' => 'updated_at',
     ];
 }

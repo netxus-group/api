@@ -20,7 +20,7 @@ class PollModel extends Model
         'starts_at', 'ends_at',
     ];
 
-    protected $casts = [
+    protected array $casts = [
         'active'                   => 'boolean',
         'allow_multiple_responses' => 'boolean',
     ];

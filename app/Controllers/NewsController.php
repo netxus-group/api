@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Libraries\ApiResponse;
 use App\Models\NewsModel;
+use App\Services\PortalNewsSerializer;
 
 class NewsController extends BaseApiController
 {
@@ -37,7 +38,7 @@ class NewsController extends BaseApiController
 
         $result = $this->newsModel->listFiltered($filters, $page, $perPage);
 
-        $items = array_map(fn($n) => $n->toArray(), $result['items']);
+        $items = $this->serializeNewsItems($result['items']);
         return ApiResponse::paginated($items, $result['total'], $page, $perPage);
     }
 
@@ -58,7 +59,8 @@ class NewsController extends BaseApiController
             }
         }
 
-        return ApiResponse::ok($result);
+        $serialized = $this->serializeNewsItems([$result]);
+        return ApiResponse::ok($serialized[0] ?? null);
     }
 
     /**
@@ -144,5 +146,74 @@ class NewsController extends BaseApiController
                 default       => ApiResponse::badRequest($e->getMessage()),
             };
         }
+    }
+
+    /**
+     * @param array<int, mixed> $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function serializeNewsItems(array $items): array
+    {
+        if ($items === []) {
+            return [];
+        }
+
+        $rows = array_map(fn($item) => $this->toNewsRow($item), $items);
+        $newsIds = array_map(static fn(array $row): string => (string) ($row['id'] ?? ''), $rows);
+
+        $db = db_connect();
+        [$categoriesByNews, $tagsByNews] = PortalNewsSerializer::loadTaxonomyMaps($db, $newsIds);
+
+        $authorIds = [];
+        foreach ($rows as $row) {
+            $authorId = $row['author_id'] ?? $row['authorId'] ?? null;
+            if (!empty($authorId)) {
+                $authorIds[] = (string) $authorId;
+            }
+        }
+        $authorsById = PortalNewsSerializer::loadAuthorsMap($db, array_values(array_unique($authorIds)));
+
+        return array_map(function (array $row) use ($categoriesByNews, $tagsByNews, $authorsById): array {
+            if (!array_key_exists('author_id', $row) && array_key_exists('authorId', $row)) {
+                $row['author_id'] = $row['authorId'];
+            }
+            if (!array_key_exists('cover_image_url', $row) && array_key_exists('heroImage', $row)) {
+                $row['cover_image_url'] = $row['heroImage'];
+            }
+            if (!array_key_exists('published_at', $row) && array_key_exists('publishAt', $row)) {
+                $row['published_at'] = $row['publishAt'];
+            }
+            if (!array_key_exists('excerpt', $row) && array_key_exists('summary', $row)) {
+                $row['excerpt'] = $row['summary'];
+            }
+            if (!array_key_exists('body', $row) && array_key_exists('content', $row)) {
+                $row['body'] = $row['content'];
+            }
+
+            $base = PortalNewsSerializer::mapNewsRow($row, $categoriesByNews, $tagsByNews, $authorsById);
+            $base['status'] = (string) ($row['status'] ?? 'draft');
+            $base['createdBy'] = $row['created_by'] ?? $row['createdBy'] ?? null;
+            $base['reviewedBy'] = $row['reviewed_by'] ?? $row['reviewedBy'] ?? null;
+            $base['heroImageId'] = $row['hero_image_id'] ?? $row['heroImageId'] ?? null;
+            $base['createdAt'] = $row['created_at'] ?? $row['createdAt'] ?? null;
+            $base['updatedAt'] = $row['updated_at'] ?? $row['updatedAt'] ?? null;
+            return $base;
+        }, $rows);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function toNewsRow(mixed $item): array
+    {
+        if (is_array($item)) {
+            return $item;
+        }
+
+        if (is_object($item) && method_exists($item, 'toArray')) {
+            return $item->toArray();
+        }
+
+        return (array) $item;
     }
 }

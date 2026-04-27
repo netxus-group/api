@@ -10,23 +10,46 @@ use App\Models\AuthorModel;
 use App\Models\AdSlotModel;
 use App\Models\HomeLayoutConfigModel;
 use App\Models\EngagementEventModel;
+use App\Services\PortalNewsSerializer;
 
 class PublicApiController extends BaseApiController
 {
+    /**
+     * Backward-compatible alias used by Routes.php.
+     * GET /api/v1/public/home
+     */
+    public function home()
+    {
+        return $this->homeLayout();
+    }
+
     /** GET /api/v1/public/news */
     public function news()
     {
         [$page, $limit] = $this->paginationParams();
-        $category = $this->request->getGet('category');
-        $tag      = $this->request->getGet('tag');
-        $author   = $this->request->getGet('author');
-        $search   = $this->request->getGet('search');
         $featured = $this->request->getGet('featured');
 
-        $newsModel = new NewsModel();
-        $result = $newsModel->listPublished($page, $limit, $category, $tag, $author, $search, $featured);
+        $filters = [
+            'categorySlug' => $this->request->getGet('category'),
+            'tagSlug'      => $this->request->getGet('tag'),
+            'authorSlug'   => $this->request->getGet('author'),
+            'search'       => $this->request->getGet('search'),
+            'featured'     => $featured === null ? null : in_array(strtolower((string) $featured), ['1', 'true', 'yes'], true),
+        ];
 
-        return ApiResponse::paginated($result['data'], $result['meta']);
+        $newsModel = new NewsModel();
+        $result = $newsModel->listPublished($filters, $page, $limit);
+        $items = $this->serializePublishedItems($result['items']);
+
+        return ApiResponse::paginated($items, $result['total'], $page, $limit);
+    }
+
+    /**
+     * Backward-compatible alias for the route target declared in Routes.php.
+     */
+    public function newsList()
+    {
+        return $this->news();
     }
 
     /** GET /api/v1/public/news/:slug */
@@ -42,14 +65,18 @@ class PublicApiController extends BaseApiController
         // Track view
         $engagement = new EngagementEventModel();
         $engagement->track(
+            'view',
             $article['id'],
             'news',
-            'view',
-            $this->request->getIPAddress(),
-            $this->request->getUserAgent()->getAgentString()
+            [
+                'ipAddress' => $this->request->getIPAddress(),
+                'userAgent' => $this->request->getUserAgent()->getAgentString(),
+            ]
         );
 
-        return ApiResponse::ok($article);
+        $serialized = $this->serializePublishedItems([$article]);
+
+        return ApiResponse::ok($serialized[0] ?? null);
     }
 
     /** GET /api/v1/public/categories */
@@ -83,9 +110,12 @@ class PublicApiController extends BaseApiController
         $model     = new AdSlotModel();
 
         if ($placement) {
-            $ads = $model->getByPlacement($placement);
+            $ads = array_map(static fn($ad) => $ad->toArray(), $model->getByPlacement($placement));
         } else {
-            $ads = $model->getAllActiveGrouped();
+            $ads = [];
+            foreach ($model->getAllActiveGrouped() as $key => $items) {
+                $ads[$key] = array_map(static fn($ad) => $ad->toArray(), $items);
+            }
         }
 
         return ApiResponse::ok($ads);
@@ -126,14 +156,32 @@ class PublicApiController extends BaseApiController
 
         $engagement = new EngagementEventModel();
         $engagement->track(
-            $data['entityId'],
-            $data['entityType'],
             $data['eventType'],
-            $this->request->getIPAddress(),
-            $this->request->getUserAgent()->getAgentString()
+            (string) $data['entityId'],
+            (string) $data['entityType'],
+            [
+                'ipAddress' => $this->request->getIPAddress(),
+                'userAgent' => $this->request->getUserAgent()->getAgentString(),
+            ]
         );
 
         return ApiResponse::ok(null, 'Event tracked');
+    }
+
+    /**
+     * Backward-compatible alias for the route target declared in Routes.php.
+     */
+    public function trackEvent()
+    {
+        return $this->trackEngagement();
+    }
+
+    /**
+     * Search endpoint alias using the same filter machinery as /public/news.
+     */
+    public function search()
+    {
+        return $this->news();
     }
 
     /** GET /api/v1/public/polls/:id */
@@ -145,5 +193,53 @@ class PublicApiController extends BaseApiController
             return ApiResponse::notFound('Poll not found');
         }
         return ApiResponse::ok($poll);
+    }
+
+    /**
+     * @param array<int, mixed> $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function serializePublishedItems(array $items): array
+    {
+        if ($items === []) {
+            return [];
+        }
+
+        $rows = array_map(fn($item) => $this->toNewsRow($item), $items);
+        $newsIds = array_map(static fn(array $row): string => (string) $row['id'], $rows);
+
+        $db = db_connect();
+        [$categoriesByNews, $tagsByNews] = PortalNewsSerializer::loadTaxonomyMaps($db, $newsIds);
+
+        $authorIds = [];
+        foreach ($rows as $row) {
+            if (!empty($row['author_id'])) {
+                $authorIds[] = (string) $row['author_id'];
+            }
+        }
+        $authorsById = PortalNewsSerializer::loadAuthorsMap($db, array_values(array_unique($authorIds)));
+
+        $serialized = [];
+        foreach ($rows as $row) {
+            $serialized[] = PortalNewsSerializer::mapNewsRow($row, $categoriesByNews, $tagsByNews, $authorsById);
+        }
+
+        return $serialized;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function toNewsRow(mixed $item): array
+    {
+        if (is_array($item)) {
+            return $item;
+        }
+
+        if (is_object($item) && method_exists($item, 'toArray')) {
+            return $item->toArray();
+        }
+
+        return (array) $item;
     }
 }
