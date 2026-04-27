@@ -18,6 +18,17 @@ if (version_compare(PHP_VERSION, $minPhpVersion, '<')) {
     exit(1);
 }
 
+if (getenv('CI_ENVIRONMENT') === false && ! isset($_SERVER['CI_ENVIRONMENT'])) {
+    putenv('CI_ENVIRONMENT=production');
+    $_ENV['CI_ENVIRONMENT'] = 'production';
+    $_SERVER['CI_ENVIRONMENT'] = 'production';
+}
+
+ini_set('expose_php', '0');
+if (function_exists('header_remove')) {
+    header_remove('X-Powered-By');
+}
+
 // Path to the front controller
 define('FCPATH', __DIR__ . DIRECTORY_SEPARATOR);
 

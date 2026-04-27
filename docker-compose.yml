@@ -1,0 +1,71 @@
+name: netxus-api
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: netxus-api-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpwd}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-netxus_db}
+      MYSQL_USER: ${MYSQL_USER:-netxus}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-netxus_pwd}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpwd}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - api_net
+
+  api:
+    container_name: netxus-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DB_HOST: mysql
+      DB_NAME: ${MYSQL_DATABASE:-netxus_db}
+      DB_USER: ${MYSQL_USER:-netxus}
+      DB_PASS: ${MYSQL_PASSWORD:-netxus_pwd}
+      DB_PORT: "3306"
+      app.baseURL: ${API_BASE_URL:-http://localhost:8080/}
+    ports:
+      - "${API_PORT:-8080}:80"
+    volumes:
+      - .:/var/www/html
+      - api_vendor:/var/www/html/vendor
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - api_net
+
+networks:
+  api_net:
+    name: netxus-api-net
+    driver: bridge
+
+volumes:
+  mysql_data:
+    name: netxus-api-mysql-data
+  api_vendor:
+    name: netxus-api-vendor

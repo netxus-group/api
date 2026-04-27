@@ -65,7 +65,7 @@ Set `CORS_ALLOWED_ORIGINS` to every frontend origin used in each environment.
 Example (local):
 
 ```ini
-CORS_ALLOWED_ORIGINS = http://localhost:3000,http://localhost:3002
+CORS_ALLOWED_ORIGINS = http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:5173,http://localhost:5174
 ```
 
 Example (staging/prod):

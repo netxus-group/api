@@ -4,7 +4,15 @@ Options All -Indexes
 # Prevent direct access to files/folders beginning with a period
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    # Preserve Authorization header so PHP/CodeIgniter can read Bearer tokens.
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
     RewriteRule (^\.|/\.) - [F]
+</IfModule>
+
+<IfModule mod_setenvif.c>
+    # Fallback for some Apache setups.
+    SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
 </IfModule>
 
 # Rewrite to index.php

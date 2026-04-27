@@ -53,6 +53,31 @@ mysql -u root -p netxus_portal < sql/test-data.sql
 php spark serve --port 8080
 ```
 
+## Levantar con Docker (desde `api/`)
+
+```bash
+# 1. Estando dentro de la carpeta api/
+cd api
+
+# 2. Configurar entorno
+cp .env.example .env
+
+# 3. Levantar API + MySQL
+docker compose up -d --build
+
+# 4. Ejecutar migraciones y seed inicial
+docker compose exec api php spark migrate
+docker compose exec api php spark db:seed DatabaseSeeder
+```
+
+La API queda disponible en `http://localhost:8080`.
+
+Para detener contenedores:
+
+```bash
+docker compose down
+```
+
 ## Configuración del .env
 
 Variables clave a configurar:
@@ -71,7 +96,7 @@ JWT_ACCESS_TTL = 900    # 15 minutos
 JWT_REFRESH_TTL = 604800 # 7 días
 
 # CORS (separar orígenes con coma)
-CORS_ALLOWED_ORIGINS = http://localhost:5173,http://localhost:5174
+CORS_ALLOWED_ORIGINS = http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:5173,http://localhost:5174
 
 # Uploads
 UPLOAD_PATH = writable/uploads/

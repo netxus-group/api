@@ -35,7 +35,7 @@ class Database extends Config
         'pConnect'     => false,
         'DBDebug'      => true,
         'charset'      => 'utf8mb4',
-        'DBCollat'     => 'utf8mb4_general_ci',
+        'DBCollat'     => 'utf8mb4_unicode_ci',
         'swapPre'      => '',
         'encrypt'      => false,
         'compress'     => false,
@@ -193,6 +193,39 @@ class Database extends Config
     public function __construct()
     {
         parent::__construct();
+
+        // Allow Docker/.env runtime overrides for DB connection.
+        // DB_* vars take precedence so Docker can override project .env safely.
+        $this->default['hostname'] = env('DB_HOST', env('database.default.hostname', $this->default['hostname']));
+        $this->default['username'] = env('DB_USER', env('database.default.username', $this->default['username']));
+        $this->default['password'] = env('DB_PASS', env('database.default.password', $this->default['password']));
+        $this->default['database'] = env('DB_NAME', env('database.default.database', $this->default['database']));
+        $this->default['DBDriver'] = env('database.default.DBDriver', $this->default['DBDriver']);
+        $this->default['DBPrefix'] = env('database.default.DBPrefix', $this->default['DBPrefix']);
+        $this->default['charset'] = env('database.default.charset', $this->default['charset']);
+        $this->default['DBCollat'] = env('database.default.DBCollat', $this->default['DBCollat']);
+        $this->default['port'] = (int) env('DB_PORT', env('database.default.port', (string) $this->default['port']));
+
+        $this->default['pConnect'] = filter_var(
+            env('database.default.pConnect', (string) $this->default['pConnect']),
+            FILTER_VALIDATE_BOOLEAN
+        );
+        $this->default['encrypt'] = filter_var(
+            env('database.default.encrypt', (string) $this->default['encrypt']),
+            FILTER_VALIDATE_BOOLEAN
+        );
+        $this->default['compress'] = filter_var(
+            env('database.default.compress', (string) $this->default['compress']),
+            FILTER_VALIDATE_BOOLEAN
+        );
+        $this->default['strictOn'] = filter_var(
+            env('database.default.strictOn', (string) $this->default['strictOn']),
+            FILTER_VALIDATE_BOOLEAN
+        );
+        $this->default['DBDebug'] = filter_var(
+            env('database.default.DBDebug', ENVIRONMENT !== 'production' ? 'true' : 'false'),
+            FILTER_VALIDATE_BOOLEAN
+        );
 
         // Ensure that we always set the database group to 'tests' if
         // we are currently running an automated test suite, so that
