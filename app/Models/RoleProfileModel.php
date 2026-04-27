@@ -14,7 +14,7 @@ class RoleProfileModel extends Model
 
     protected $allowedFields = ['key', 'name', 'capabilities'];
 
-    protected $casts = [
+    protected array $casts = [
         'capabilities' => 'json-array',
     ];
 }

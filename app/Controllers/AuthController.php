@@ -76,4 +76,46 @@ class AuthController extends BaseApiController
 
         return ApiResponse::ok($profile);
     }
+
+    /**
+     * POST /api/v1/auth/forgot-password
+     */
+    public function forgotPassword()
+    {
+        $data   = $this->getJsonInput();
+        $errors = $this->validateInput($data, 'forgotPassword');
+        if ($errors) {
+            return ApiResponse::validationError($errors);
+        }
+
+        $authService = service('authService');
+        $result = $authService->requestPasswordReset((string) $data['email']);
+        return ApiResponse::ok($result, 'If the email exists, reset instructions were generated');
+    }
+
+    /**
+     * POST /api/v1/auth/reset-password
+     */
+    public function resetPassword()
+    {
+        $data   = $this->getJsonInput();
+        $errors = $this->validateInput($data, 'resetPassword');
+        if ($errors) {
+            return ApiResponse::validationError($errors);
+        }
+
+        $authService = service('authService');
+
+        try {
+            $authService->resetPassword((string) $data['resetToken'], (string) $data['newPassword']);
+            return ApiResponse::ok(null, 'Password reset successful');
+        } catch (\RuntimeException $exception) {
+            return match ($exception->getCode()) {
+                401 => ApiResponse::unauthorized($exception->getMessage()),
+                404 => ApiResponse::notFound($exception->getMessage()),
+                422 => ApiResponse::validationError(['newPassword' => $exception->getMessage()]),
+                default => ApiResponse::badRequest($exception->getMessage()),
+            };
+        }
+    }
 }

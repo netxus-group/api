@@ -19,7 +19,7 @@ class UserModel extends Model
     protected $allowedFields = [
         'id', 'email', 'password_hash', 'role',
         'first_name', 'last_name', 'username',
-        'active', 'last_login',
+        'active', 'last_login_at',
     ];
 
     /**

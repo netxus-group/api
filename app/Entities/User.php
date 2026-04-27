@@ -15,7 +15,7 @@ class User extends Entity
         'last_name'     => null,
         'username'      => null,
         'active'        => true,
-        'last_login'    => null,
+        'last_login_at' => null,
         'created_at'    => null,
         'updated_at'    => null,
     ];
@@ -27,7 +27,7 @@ class User extends Entity
     protected $datamap = [
         'firstName' => 'first_name',
         'lastName'  => 'last_name',
-        'lastLogin' => 'last_login',
+        'lastLogin' => 'last_login_at',
     ];
 
     /**

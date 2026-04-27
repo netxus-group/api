@@ -68,12 +68,14 @@ class JwtManager
             $decoded = JWT::decode($token, new Key($this->config->jwtSecret, $this->config->jwtAlgorithm));
 
             if (($decoded->tokenType ?? '') !== 'access') {
-                throw new \RuntimeException('Invalid token type');
+                throw new \RuntimeException('Invalid token type', 401);
             }
 
             return $decoded;
         } catch (ExpiredException $e) {
-            throw new \RuntimeException('Token expired');
+            throw new \RuntimeException('Token expired', 401);
+        } catch (\Throwable $e) {
+            throw new \RuntimeException('Invalid token', 401);
         }
     }
 
@@ -86,12 +88,14 @@ class JwtManager
             $decoded = JWT::decode($token, new Key($this->config->jwtRefreshSecret, $this->config->jwtAlgorithm));
 
             if (($decoded->tokenType ?? '') !== 'refresh') {
-                throw new \RuntimeException('Invalid token type');
+                throw new \RuntimeException('Invalid token type', 401);
             }
 
             return $decoded;
         } catch (ExpiredException $e) {
-            throw new \RuntimeException('Refresh token expired');
+            throw new \RuntimeException('Refresh token expired', 401);
+        } catch (\Throwable $e) {
+            throw new \RuntimeException('Invalid refresh token', 401);
         }
     }
 

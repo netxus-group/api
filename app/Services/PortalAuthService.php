@@ -299,7 +299,8 @@ class PortalAuthService
 
     private function rateKey(string $scope, string $keySeed): string
     {
-        return 'portal_auth:' . $scope . ':' . sha1($keySeed);
+        // CI4 cache keys cannot contain reserved chars like ":".
+        return 'portal_auth_' . $scope . '_' . sha1($keySeed);
     }
 
     private function buildInitials(string $firstName, string $lastName, string $email): string

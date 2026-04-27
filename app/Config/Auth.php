@@ -33,6 +33,9 @@ class Auth extends BaseConfig
     /** Password hash cost (bcrypt rounds) */
     public int $bcryptCost = 10;
 
+    /** Password reset token TTL in seconds (default 60min) */
+    public int $passwordResetExpires = 3600;
+
     /** Available roles */
     public array $roles = ['super_admin', 'editor', 'writer'];
 
@@ -69,8 +72,9 @@ class Auth extends BaseConfig
 
         $this->jwtSecret           = env('JWT_SECRET', $this->jwtSecret);
         $this->jwtRefreshSecret    = env('JWT_REFRESH_SECRET', $this->jwtRefreshSecret);
-        $this->accessTokenExpires  = (int) env('JWT_ACCESS_EXPIRES', $this->accessTokenExpires);
+        $this->accessTokenExpires  = (int) env('TOKEN_TTL', env('JWT_ACCESS_EXPIRES', $this->accessTokenExpires));
         $this->refreshTokenExpires = (int) env('JWT_REFRESH_EXPIRES', $this->refreshTokenExpires);
+        $this->passwordResetExpires = (int) env('JWT_PASSWORD_RESET_EXPIRES', $this->passwordResetExpires);
         $this->newsletterSecret    = env('NEWSLETTER_UNSUBSCRIBE_SECRET', $this->newsletterSecret);
     }
 

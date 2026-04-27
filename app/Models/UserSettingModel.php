@@ -16,7 +16,7 @@ class UserSettingModel extends Model
         'user_id', 'theme', 'notifications',
     ];
 
-    protected $casts = [
+    protected array $casts = [
         'notifications' => 'json-array',
     ];
 

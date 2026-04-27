@@ -13,15 +13,26 @@ use App\Libraries\ApiResponse;
  */
 class AuthFilter implements FilterInterface
 {
+    private const UNAUTHORIZED_MESSAGE = 'Unauthorized';
+
     public function before(RequestInterface $request, $arguments = null)
     {
-        $header = $request->getHeaderLine('Authorization');
-
-        if (empty($header) || !str_starts_with($header, 'Bearer ')) {
-            return ApiResponse::unauthorized('Missing or invalid Authorization header');
+        $header = trim($request->getHeaderLine('Authorization'));
+        if ($header === '') {
+            $header = trim((string) $request->getServer('HTTP_AUTHORIZATION'));
+        }
+        if ($header === '') {
+            $header = trim((string) $request->getServer('REDIRECT_HTTP_AUTHORIZATION'));
         }
 
-        $token = substr($header, 7);
+        if (! preg_match('/^Bearer\s+(.+)$/i', $header, $matches)) {
+            return ApiResponse::unauthorized(self::UNAUTHORIZED_MESSAGE);
+        }
+
+        $token = trim($matches[1]);
+        if ($token === '') {
+            return ApiResponse::unauthorized(self::UNAUTHORIZED_MESSAGE);
+        }
 
         try {
             $jwt     = service('jwtManager');
@@ -34,7 +45,7 @@ class AuthFilter implements FilterInterface
                 'role'   => $decoded->role,
             ];
         } catch (\Throwable $e) {
-            return ApiResponse::unauthorized('Invalid or expired token');
+            return ApiResponse::unauthorized(self::UNAUTHORIZED_MESSAGE);
         }
 
         return null;
