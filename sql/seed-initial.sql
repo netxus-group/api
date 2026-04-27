@@ -2,6 +2,8 @@
 -- Netxus Portal News - Initial Seed Data (required)
 -- Run after schema.sql to insert base system data
 -- ============================================================
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
 
 -- -----------------------------------------------------------
 -- Default Roles
@@ -32,8 +34,8 @@ INSERT INTO `user_roles` (`id`, `user_id`, `role_profile_id`, `created_at`) VALU
 -- Default Integration Configs
 -- -----------------------------------------------------------
 INSERT INTO `integration_configs` (`id`, `provider`, `endpoint`, `ttl`, `active`, `extra_config`, `created_at`, `updated_at`) VALUES
-('30000000-0000-0000-0000-000000000001', 'weather', 'https://api.open-meteo.com/v1/forecast', '30m', 1, '{"latitude":-34.6037,"longitude":-58.3816}', NOW(), NOW()),
-('30000000-0000-0000-0000-000000000002', 'dollar', 'https://open.er-api.com/v6/latest/USD', '1h', 1, NULL, NOW(), NOW());
+('30000000-0000-0000-0000-000000000001', 'weather', 'https://api.open-meteo.com/v1/forecast', '1h', 1, '{"latitude":-34.6037,"longitude":-58.3816}', NOW(), NOW()),
+('30000000-0000-0000-0000-000000000002', 'dollar', 'https://criptoya.com/api/dolar', '1h', 1, NULL, NOW(), NOW());
 
 -- -----------------------------------------------------------
 -- Default Global Settings

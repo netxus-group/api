@@ -23,6 +23,90 @@ class TestDataSeeder extends Seeder
         $now = date('Y-m-d H:i:s');
         $pw  = password_hash('Test1234!', PASSWORD_BCRYPT, ['cost' => 10]);
 
+        // Make seeder re-runnable by clearing deterministic fixture rows first.
+        $testUserIds = [
+            '10000000-0000-0000-0000-000000000002',
+            '10000000-0000-0000-0000-000000000003',
+            '10000000-0000-0000-0000-000000000004',
+            '10000000-0000-0000-0000-000000000005',
+            '10000000-0000-0000-0000-000000000006',
+        ];
+
+        $authorIds = [
+            'a0000000-0000-0000-0000-000000000001',
+            'a0000000-0000-0000-0000-000000000002',
+            'a0000000-0000-0000-0000-000000000003',
+            'a0000000-0000-0000-0000-000000000004',
+            'a0000000-0000-0000-0000-000000000005',
+        ];
+
+        $categoryIds = [
+            'c0000000-0000-0000-0000-000000000001',
+            'c0000000-0000-0000-0000-000000000002',
+            'c0000000-0000-0000-0000-000000000003',
+            'c0000000-0000-0000-0000-000000000004',
+            'c0000000-0000-0000-0000-000000000005',
+            'c0000000-0000-0000-0000-000000000006',
+            'c0000000-0000-0000-0000-000000000007',
+            'c0000000-0000-0000-0000-000000000008',
+        ];
+
+        $tagIds = [
+            't0000000-0000-0000-0000-000000000001',
+            't0000000-0000-0000-0000-000000000002',
+            't0000000-0000-0000-0000-000000000003',
+            't0000000-0000-0000-0000-000000000004',
+            't0000000-0000-0000-0000-000000000005',
+            't0000000-0000-0000-0000-000000000006',
+            't0000000-0000-0000-0000-000000000007',
+            't0000000-0000-0000-0000-000000000008',
+            't0000000-0000-0000-0000-000000000009',
+            't0000000-0000-0000-0000-000000000010',
+        ];
+
+        $newsIds = [
+            'n0000000-0000-0000-0000-000000000001',
+            'n0000000-0000-0000-0000-000000000002',
+            'n0000000-0000-0000-0000-000000000003',
+            'n0000000-0000-0000-0000-000000000004',
+            'n0000000-0000-0000-0000-000000000005',
+            'n0000000-0000-0000-0000-000000000006',
+            'n0000000-0000-0000-0000-000000000007',
+            'n0000000-0000-0000-0000-000000000008',
+            'n0000000-0000-0000-0000-000000000009',
+            'n0000000-0000-0000-0000-000000000010',
+            'n0000000-0000-0000-0000-000000000011',
+            'n0000000-0000-0000-0000-000000000012',
+        ];
+
+        $pollId = 'p0000000-0000-0000-0000-000000000001';
+        $q1Id   = 'pq000000-0000-0000-0000-000000000001';
+        $q2Id   = 'pq000000-0000-0000-0000-000000000002';
+
+        $newsletterEmails = [];
+        for ($i = 1; $i <= 10; $i++) {
+            $newsletterEmails[] = "lector{$i}@gmail.com";
+        }
+
+        $this->db->table('user_roles')->whereIn('user_id', $testUserIds)->delete();
+        $this->db->table('users')->whereIn('id', $testUserIds)->delete();
+
+        $this->db->table('news_tags')->whereIn('news_id', $newsIds)->delete();
+        $this->db->table('news_categories')->whereIn('news_id', $newsIds)->delete();
+        $this->db->table('post_status_history')->whereIn('news_id', $newsIds)->delete();
+        $this->db->table('news')->whereIn('id', $newsIds)->delete();
+
+        $this->db->table('poll_response_details')->whereIn('question_id', [$q1Id, $q2Id])->delete();
+        $this->db->table('poll_options')->whereIn('question_id', [$q1Id, $q2Id])->delete();
+        $this->db->table('poll_questions')->where('poll_id', $pollId)->delete();
+        $this->db->table('poll_responses')->where('poll_id', $pollId)->delete();
+        $this->db->table('polls')->where('id', $pollId)->delete();
+
+        $this->db->table('authors')->whereIn('id', $authorIds)->delete();
+        $this->db->table('categories')->whereIn('id', $categoryIds)->delete();
+        $this->db->table('tags')->whereIn('id', $tagIds)->delete();
+        $this->db->table('newsletter_subscribers')->whereIn('email', $newsletterEmails)->delete();
+
         // ---- Extra Users: 1 more admin + 2 editors + 2 writers ----
         $this->db->table('users')->insertBatch([
             ['id' => '10000000-0000-0000-0000-000000000002', 'email' => 'admin2@netxus.com',  'password_hash' => $pw, 'first_name' => 'Carlos',  'last_name' => 'Méndez',    'display_name' => 'Carlos Méndez',    'active' => 1, 'email_verified' => 1, 'created_at' => $now, 'updated_at' => $now],
@@ -176,7 +260,7 @@ class TestDataSeeder extends Seeder
         $this->db->table('ad_slots')->insertBatch([
             ['id' => $this->uuid(), 'name' => 'Banner principal superior', 'placement' => 'header', 'type' => 'image', 'content' => '{"imageUrl":"/uploads/ads/banner-header.jpg","width":728,"height":90}', 'target_url' => 'https://example.com/promo1', 'active' => 1, 'created_at' => $now, 'updated_at' => $now],
             ['id' => $this->uuid(), 'name' => 'Banner lateral derecho', 'placement' => 'sidebar', 'type' => 'image', 'content' => '{"imageUrl":"/uploads/ads/banner-sidebar.jpg","width":300,"height":250}', 'target_url' => 'https://example.com/promo2', 'active' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['id' => $this->uuid(), 'name' => 'Banner entre artículos', 'placement' => 'inline', 'type' => 'html', 'content' => '{"html":"<div>Publicidad</div>"}', 'active' => 1, 'created_at' => $now, 'updated_at' => $now],
+            ['id' => $this->uuid(), 'name' => 'Banner entre artículos', 'placement' => 'inline', 'type' => 'html', 'content' => '{"html":"<div>Publicidad</div>"}', 'target_url' => null, 'active' => 1, 'created_at' => $now, 'updated_at' => $now],
             ['id' => $this->uuid(), 'name' => 'Banner pie de página', 'placement' => 'footer', 'type' => 'image', 'content' => '{"imageUrl":"/uploads/ads/banner-footer.jpg","width":728,"height":90}', 'target_url' => 'https://example.com/promo3', 'active' => 1, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
@@ -195,9 +279,6 @@ class TestDataSeeder extends Seeder
         }
 
         // ---- Poll ----
-        $pollId = 'p0000000-0000-0000-0000-000000000001';
-        $q1Id   = 'pq000000-0000-0000-0000-000000000001';
-        $q2Id   = 'pq000000-0000-0000-0000-000000000002';
 
         $this->db->table('polls')->insert([
             'id' => $pollId, 'title' => '¿Cuál es la temática que más te interesa?',

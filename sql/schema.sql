@@ -4,6 +4,8 @@
 -- Generated for CodeIgniter 4 migration
 -- ============================================================
 
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- -----------------------------------------------------------

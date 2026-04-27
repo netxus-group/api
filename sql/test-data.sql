@@ -3,6 +3,8 @@
 -- 2 usuarios por rol, 5+ artículos por redactor,
 -- categorías, tags, autores, ads, encuestas, suscriptores
 -- ============================================================
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
 
 -- Prerequisite: Run schema.sql and seed-initial.sql first
 
@@ -15,7 +17,16 @@ INSERT INTO `users` (`id`, `email`, `password_hash`, `first_name`, `last_name`, 
 ('10000000-0000-0000-0000-000000000003', 'editor1@netxus.com',  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Laura',   'Giménez',  'Laura Giménez',   1, 1, NOW(), NOW()),
 ('10000000-0000-0000-0000-000000000004', 'editor2@netxus.com',  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Martín',  'López',    'Martín López',    1, 1, NOW(), NOW()),
 ('10000000-0000-0000-0000-000000000005', 'writer1@netxus.com',  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Ana',     'Rodríguez','Ana Rodríguez',   1, 1, NOW(), NOW()),
-('10000000-0000-0000-0000-000000000006', 'writer2@netxus.com',  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Diego',   'Fernández','Diego Fernández', 1, 1, NOW(), NOW());
+('10000000-0000-0000-0000-000000000006', 'writer2@netxus.com',  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Diego',   'Fernández','Diego Fernández', 1, 1, NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  `email` = VALUES(`email`),
+  `password_hash` = VALUES(`password_hash`),
+  `first_name` = VALUES(`first_name`),
+  `last_name` = VALUES(`last_name`),
+  `display_name` = VALUES(`display_name`),
+  `active` = VALUES(`active`),
+  `email_verified` = VALUES(`email_verified`),
+  `updated_at` = VALUES(`updated_at`);
 
 -- Assign roles
 INSERT INTO `user_roles` (`id`, `user_id`, `role_profile_id`, `created_at`) VALUES
@@ -23,7 +34,9 @@ INSERT INTO `user_roles` (`id`, `user_id`, `role_profile_id`, `created_at`) VALU
 ('20000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000002', NOW()),
 ('20000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000002', NOW()),
 ('20000000-0000-0000-0000-000000000005', '10000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000003', NOW()),
-('20000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000003', NOW());
+('20000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000003', NOW())
+ON DUPLICATE KEY UPDATE
+  `created_at` = VALUES(`created_at`);
 
 -- -----------------------------------------------------------
 -- Authors
@@ -33,7 +46,14 @@ INSERT INTO `authors` (`id`, `name`, `slug`, `bio`, `email`, `active`, `created_
 ('a0000000-0000-0000-0000-000000000002', 'Joaquín Pérez',        'joaquin-perez',         'Corresponsal de deportes y actualidad.',                  'joaquin@netxus.com',1, NOW(), NOW()),
 ('a0000000-0000-0000-0000-000000000003', 'Valentina Ruiz',       'valentina-ruiz',        'Especialista en tecnología y cultura digital.',           'vale@netxus.com',   1, NOW(), NOW()),
 ('a0000000-0000-0000-0000-000000000004', 'Roberto Sánchez',      'roberto-sanchez',       'Editor de opinión y análisis internacional.',             'roberto@netxus.com',1, NOW(), NOW()),
-('a0000000-0000-0000-0000-000000000005', 'Camila Herrera',       'camila-herrera',        'Periodista de investigación y sociedad.',                 'camila@netxus.com', 1, NOW(), NOW());
+('a0000000-0000-0000-0000-000000000005', 'Camila Herrera',       'camila-herrera',        'Periodista de investigación y sociedad.',                 'camila@netxus.com', 1, NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  `name` = VALUES(`name`),
+  `slug` = VALUES(`slug`),
+  `bio` = VALUES(`bio`),
+  `email` = VALUES(`email`),
+  `active` = VALUES(`active`),
+  `updated_at` = VALUES(`updated_at`);
 
 -- -----------------------------------------------------------
 -- Categories
@@ -46,7 +66,15 @@ INSERT INTO `categories` (`id`, `name`, `slug`, `description`, `color`, `sort_or
 ('c0000000-0000-0000-0000-000000000005', 'Cultura',      'cultura',      'Arte, música, cine y espectáculos',               '#805AD5', 5, 1, NOW(), NOW()),
 ('c0000000-0000-0000-0000-000000000006', 'Sociedad',     'sociedad',     'Educación, salud, medio ambiente',                '#D69E2E', 6, 1, NOW(), NOW()),
 ('c0000000-0000-0000-0000-000000000007', 'Internacional','internacional','Noticias del mundo',                              '#2D3748', 7, 1, NOW(), NOW()),
-('c0000000-0000-0000-0000-000000000008', 'Opinión',      'opinion',      'Columnas de opinión y editoriales',               '#718096', 8, 1, NOW(), NOW());
+('c0000000-0000-0000-0000-000000000008', 'Opinión',      'opinion',      'Columnas de opinión y editoriales',               '#718096', 8, 1, NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  `name` = VALUES(`name`),
+  `slug` = VALUES(`slug`),
+  `description` = VALUES(`description`),
+  `color` = VALUES(`color`),
+  `sort_order` = VALUES(`sort_order`),
+  `active` = VALUES(`active`),
+  `updated_at` = VALUES(`updated_at`);
 
 -- -----------------------------------------------------------
 -- Tags
@@ -61,7 +89,12 @@ INSERT INTO `tags` (`id`, `name`, `slug`, `active`, `created_at`, `updated_at`) 
 ('t0000000-0000-0000-0000-000000000007', 'Criptomonedas',  'criptomonedas',  1, NOW(), NOW()),
 ('t0000000-0000-0000-0000-000000000008', 'Salud',          'salud',          1, NOW(), NOW()),
 ('t0000000-0000-0000-0000-000000000009', 'Educación',      'educacion',      1, NOW(), NOW()),
-('t0000000-0000-0000-0000-000000000010', 'Urgente',        'urgente',        1, NOW(), NOW());
+('t0000000-0000-0000-0000-000000000010', 'Urgente',        'urgente',        1, NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  `name` = VALUES(`name`),
+  `slug` = VALUES(`slug`),
+  `active` = VALUES(`active`),
+  `updated_at` = VALUES(`updated_at`);
 
 -- -----------------------------------------------------------
 -- News: Writer 1 (Ana) - 6 articles
@@ -77,7 +110,21 @@ INSERT INTO `news` (`id`, `title`, `slug`, `subtitle`, `excerpt`, `body`, `autho
 
 ('n0000000-0000-0000-0000-000000000005', 'Nuevo avance en inteligencia artificial aplicada a la medicina', 'nuevo-avance-inteligencia-artificial-medicina', 'Investigadores desarrollan sistema de detección temprana de cáncer', 'Un equipo de investigadores argentinos desarrolló un sistema basado en IA capaz de detectar tumores malignos con un 97% de precisión.', '<p>Un equipo de investigadores argentinos desarrolló un sistema basado en inteligencia artificial capaz de detectar tumores malignos con un 97% de precisión usando únicamente imágenes de tomografía. El proyecto, financiado por el CONICET, ya se encuentra en fase de pruebas en tres hospitales públicos.</p>', 'a0000000-0000-0000-0000-000000000003', 'published', 1, 0, '10000000-0000-0000-0000-000000000005', DATE_SUB(NOW(), INTERVAL 4 DAY), 1800, NOW(), NOW()),
 
-('n0000000-0000-0000-0000-000000000006', 'Crisis hídrica: advierten sobre la baja del río Paraná', 'crisis-hidrica-baja-rio-parana', 'Los niveles se encuentran en mínimos históricos', 'Especialistas alertan que el río Paraná registra niveles por debajo de los mínimos históricos, afectando el transporte fluvial y la provisión de agua potable.', '<p>Especialistas alertan que el río Paraná registra niveles por debajo de los mínimos históricos por tercer mes consecutivo. La situación impacta en el transporte de granos, la generación hidroeléctrica y la provisión de agua potable para millones de habitantes de la cuenca.</p>', 'a0000000-0000-0000-0000-000000000005', 'in_review', 0, 0, '10000000-0000-0000-0000-000000000005', NULL, 0, NOW(), NOW());
+('n0000000-0000-0000-0000-000000000006', 'Crisis hídrica: advierten sobre la baja del río Paraná', 'crisis-hidrica-baja-rio-parana', 'Los niveles se encuentran en mínimos históricos', 'Especialistas alertan que el río Paraná registra niveles por debajo de los mínimos históricos, afectando el transporte fluvial y la provisión de agua potable.', '<p>Especialistas alertan que el río Paraná registra niveles por debajo de los mínimos históricos por tercer mes consecutivo. La situación impacta en el transporte de granos, la generación hidroeléctrica y la provisión de agua potable para millones de habitantes de la cuenca.</p>', 'a0000000-0000-0000-0000-000000000005', 'in_review', 0, 0, '10000000-0000-0000-0000-000000000005', NULL, 0, NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  `title` = VALUES(`title`),
+  `slug` = VALUES(`slug`),
+  `subtitle` = VALUES(`subtitle`),
+  `excerpt` = VALUES(`excerpt`),
+  `body` = VALUES(`body`),
+  `author_id` = VALUES(`author_id`),
+  `status` = VALUES(`status`),
+  `featured` = VALUES(`featured`),
+  `breaking` = VALUES(`breaking`),
+  `created_by` = VALUES(`created_by`),
+  `published_at` = VALUES(`published_at`),
+  `view_count` = VALUES(`view_count`),
+  `updated_at` = VALUES(`updated_at`);
 
 -- -----------------------------------------------------------
 -- News: Writer 2 (Diego) - 6 articles
@@ -93,12 +140,26 @@ INSERT INTO `news` (`id`, `title`, `slug`, `subtitle`, `excerpt`, `body`, `autho
 
 ('n0000000-0000-0000-0000-000000000011', 'Reforma educativa: provincias acuerdan nuevo diseño curricular', 'reforma-educativa-provincias-acuerdan-nuevo-diseno-curricular', 'El plan incluye programación desde el nivel primario', 'El Consejo Federal de Educación aprobó por unanimidad un nuevo diseño curricular que incluye programación como materia obligatoria desde cuarto grado.', '<p>El Consejo Federal de Educación aprobó por unanimidad un nuevo diseño curricular que incluye programación como materia obligatoria desde cuarto grado. La implementación comenzará en 2027 y demandará la capacitación de más de 50.000 docentes en todo el país.</p>', 'a0000000-0000-0000-0000-000000000005', 'draft', 0, 0, '10000000-0000-0000-0000-000000000006', NULL, 0, NOW(), NOW()),
 
-('n0000000-0000-0000-0000-000000000012', 'Opinión: El futuro de las criptomonedas en la región', 'opinion-futuro-criptomonedas-region', 'Análisis de las tendencias del mercado crypto latinoamericano', 'Las criptomonedas siguen ganando terreno en América Latina. Analizamos las regulaciones emergentes y las oportunidades de inversión.', '<p>Las criptomonedas siguen ganando terreno en América Latina. Con la aprobación de marcos regulatorios en Brasil y Colombia, y el avance de proyectos de moneda digital en Argentina, la región se posiciona como uno de los mercados crypto de mayor crecimiento global.</p>', 'a0000000-0000-0000-0000-000000000004', 'approved', 0, 0, '10000000-0000-0000-0000-000000000006', NULL, 0, NOW(), NOW());
+('n0000000-0000-0000-0000-000000000012', 'Opinión: El futuro de las criptomonedas en la región', 'opinion-futuro-criptomonedas-region', 'Análisis de las tendencias del mercado crypto latinoamericano', 'Las criptomonedas siguen ganando terreno en América Latina. Analizamos las regulaciones emergentes y las oportunidades de inversión.', '<p>Las criptomonedas siguen ganando terreno en América Latina. Con la aprobación de marcos regulatorios en Brasil y Colombia, y el avance de proyectos de moneda digital en Argentina, la región se posiciona como uno de los mercados crypto de mayor crecimiento global.</p>', 'a0000000-0000-0000-0000-000000000004', 'approved', 0, 0, '10000000-0000-0000-0000-000000000006', NULL, 0, NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  `title` = VALUES(`title`),
+  `slug` = VALUES(`slug`),
+  `subtitle` = VALUES(`subtitle`),
+  `excerpt` = VALUES(`excerpt`),
+  `body` = VALUES(`body`),
+  `author_id` = VALUES(`author_id`),
+  `status` = VALUES(`status`),
+  `featured` = VALUES(`featured`),
+  `breaking` = VALUES(`breaking`),
+  `created_by` = VALUES(`created_by`),
+  `published_at` = VALUES(`published_at`),
+  `view_count` = VALUES(`view_count`),
+  `updated_at` = VALUES(`updated_at`);
 
 -- -----------------------------------------------------------
 -- News-Categories associations
 -- -----------------------------------------------------------
-INSERT INTO `news_categories` (`id`, `news_id`, `category_id`) VALUES
+INSERT IGNORE INTO `news_categories` (`id`, `news_id`, `category_id`) VALUES
 (UUID(), 'n0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000001'),
 (UUID(), 'n0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000002'),
 (UUID(), 'n0000000-0000-0000-0000-000000000002', 'c0000000-0000-0000-0000-000000000001'),
@@ -119,7 +180,7 @@ INSERT INTO `news_categories` (`id`, `news_id`, `category_id`) VALUES
 -- -----------------------------------------------------------
 -- News-Tags associations
 -- -----------------------------------------------------------
-INSERT INTO `news_tags` (`id`, `news_id`, `tag_id`) VALUES
+INSERT IGNORE INTO `news_tags` (`id`, `news_id`, `tag_id`) VALUES
 (UUID(), 'n0000000-0000-0000-0000-000000000001', 't0000000-0000-0000-0000-000000000002'),
 (UUID(), 'n0000000-0000-0000-0000-000000000001', 't0000000-0000-0000-0000-000000000006'),
 (UUID(), 'n0000000-0000-0000-0000-000000000002', 't0000000-0000-0000-0000-000000000001'),
@@ -141,10 +202,10 @@ INSERT INTO `news_tags` (`id`, `news_id`, `tag_id`) VALUES
 -- Ad Slots
 -- -----------------------------------------------------------
 INSERT INTO `ad_slots` (`id`, `name`, `placement`, `type`, `content`, `target_url`, `active`, `created_at`, `updated_at`) VALUES
-(UUID(), 'Banner principal superior',   'header',  'image', '{"imageUrl":"/uploads/ads/banner-header.jpg","width":728,"height":90}',   'https://example.com/promo1', 1, NOW(), NOW()),
-(UUID(), 'Banner lateral derecho',      'sidebar', 'image', '{"imageUrl":"/uploads/ads/banner-sidebar.jpg","width":300,"height":250}', 'https://example.com/promo2', 1, NOW(), NOW()),
-(UUID(), 'Banner entre artículos',      'inline',  'html',  '{"html":"<div class=\"ad-inline\">Publicidad aquí</div>"}',                NULL,                         1, NOW(), NOW()),
-(UUID(), 'Banner pie de página',        'footer',  'image', '{"imageUrl":"/uploads/ads/banner-footer.jpg","width":728,"height":90}',   'https://example.com/promo3', 1, NOW(), NOW());
+(UUID(), 'Banner principal superior',   'home_main',      'external', '{"imageUrl":"/uploads/ads/banner-header.jpg","headline":"Cobertura especial","body":"Auspicia este espacio"}',   'https://example.com/promo1', 1, NOW(), NOW()),
+(UUID(), 'Banner lateral derecho',      'sidebar',        'external', '{"imageUrl":"/uploads/ads/banner-sidebar.jpg","headline":"Anuncio lateral","body":"Contenido patrocinado"}',        'https://example.com/promo2', 1, NOW(), NOW()),
+(UUID(), 'Banner entre artículos',      'article_inline', 'internal', '{"imageUrl":"/uploads/ads/banner-inline.jpg","headline":"Publicidad","body":"Espacio comercial"}',                    NULL,                         1, NOW(), NOW()),
+(UUID(), 'Banner pie de página',        'list_inline',    'external', '{"imageUrl":"/uploads/ads/banner-footer.jpg","headline":"Promocion","body":"No te pierdas esta propuesta"}',          'https://example.com/promo3', 1, NOW(), NOW());
 
 -- -----------------------------------------------------------
 -- Newsletter Subscribers
@@ -159,17 +220,35 @@ INSERT INTO `newsletter_subscribers` (`id`, `email`, `name`, `status`, `confirme
 (UUID(), 'lector7@gmail.com',    'Fernando Ruiz',    'active',       NOW(), NOW(), NOW()),
 (UUID(), 'lector8@outlook.com',  'Gabriela Torres',  'active',       NOW(), NOW(), NOW()),
 (UUID(), 'lector9@gmail.com',    'Ricardo Herrera',  'pending',      NULL,  NOW(), NOW()),
-(UUID(), 'lector10@gmail.com',   'Sofía Romero',     'active',       NOW(), NOW(), NOW());
+(UUID(), 'lector10@gmail.com',   'Sofía Romero',     'active',       NOW(), NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  `name` = VALUES(`name`),
+  `status` = VALUES(`status`),
+  `confirmed_at` = VALUES(`confirmed_at`),
+  `updated_at` = VALUES(`updated_at`);
 
 -- -----------------------------------------------------------
 -- Poll: Sample
 -- -----------------------------------------------------------
 INSERT INTO `polls` (`id`, `title`, `description`, `active`, `starts_at`, `ends_at`, `created_by`, `created_at`, `updated_at`) VALUES
-('p0000000-0000-0000-0000-000000000001', '¿Cuál es la temática que más te interesa?', 'Ayudanos a mejorar nuestro contenido seleccionando tus temas favoritos.', 1, DATE_SUB(NOW(), INTERVAL 7 DAY), DATE_ADD(NOW(), INTERVAL 30 DAY), '10000000-0000-0000-0000-000000000001', NOW(), NOW());
+('p0000000-0000-0000-0000-000000000001', '¿Cuál es la temática que más te interesa?', 'Ayudanos a mejorar nuestro contenido seleccionando tus temas favoritos.', 1, DATE_SUB(NOW(), INTERVAL 7 DAY), DATE_ADD(NOW(), INTERVAL 30 DAY), '10000000-0000-0000-0000-000000000001', NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  `title` = VALUES(`title`),
+  `description` = VALUES(`description`),
+  `active` = VALUES(`active`),
+  `starts_at` = VALUES(`starts_at`),
+  `ends_at` = VALUES(`ends_at`),
+  `updated_at` = VALUES(`updated_at`);
 
 INSERT INTO `poll_questions` (`id`, `poll_id`, `text`, `type`, `sort_order`, `required`, `created_at`) VALUES
 ('pq000000-0000-0000-0000-000000000001', 'p0000000-0000-0000-0000-000000000001', '¿Qué sección visitás con más frecuencia?', 'single', 1, 1, NOW()),
-('pq000000-0000-0000-0000-000000000002', 'p0000000-0000-0000-0000-000000000001', '¿Qué tipo de contenido preferís?', 'multiple', 2, 1, NOW());
+('pq000000-0000-0000-0000-000000000002', 'p0000000-0000-0000-0000-000000000001', '¿Qué tipo de contenido preferís?', 'multiple', 2, 1, NOW())
+ON DUPLICATE KEY UPDATE
+  `poll_id` = VALUES(`poll_id`),
+  `text` = VALUES(`text`),
+  `type` = VALUES(`type`),
+  `sort_order` = VALUES(`sort_order`),
+  `required` = VALUES(`required`);
 
 INSERT INTO `poll_options` (`id`, `question_id`, `text`, `sort_order`, `created_at`) VALUES
 (UUID(), 'pq000000-0000-0000-0000-000000000001', 'Política',     1, NOW()),
@@ -226,30 +305,48 @@ INSERT INTO `portal_user_preferences` (`id`, `portal_user_id`, `timezone`, `lang
 (UUID(), '50000000-0000-0000-0000-000000000001', 'America/Argentina/Buenos_Aires', 'es', 'daily', 1, NOW(), NOW()),
 (UUID(), '50000000-0000-0000-0000-000000000002', 'America/Argentina/Buenos_Aires', 'es', 'daily', 1, NOW(), NOW()),
 (UUID(), '50000000-0000-0000-0000-000000000003', 'America/Argentina/Buenos_Aires', 'es', 'weekly', 1, NOW(), NOW()),
-(UUID(), '50000000-0000-0000-0000-000000000004', 'America/Argentina/Buenos_Aires', 'es', 'none', 1, NOW(), NOW());
+(UUID(), '50000000-0000-0000-0000-000000000004', 'America/Argentina/Buenos_Aires', 'es', 'none', 1, NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  `timezone` = VALUES(`timezone`),
+  `language` = VALUES(`language`),
+  `digest_frequency` = VALUES(`digest_frequency`),
+  `personalization_opt_in` = VALUES(`personalization_opt_in`),
+  `updated_at` = VALUES(`updated_at`);
 
 INSERT INTO `portal_user_favorite_categories` (`id`, `portal_user_id`, `category_id`, `weight`, `created_at`, `updated_at`) VALUES
 (UUID(), '50000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000004', 1, NOW(), NOW()),
 (UUID(), '50000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000002', 1, NOW(), NOW()),
 (UUID(), '50000000-0000-0000-0000-000000000002', 'c0000000-0000-0000-0000-000000000003', 1, NOW(), NOW()),
-(UUID(), '50000000-0000-0000-0000-000000000003', 'c0000000-0000-0000-0000-000000000001', 1, NOW(), NOW());
+(UUID(), '50000000-0000-0000-0000-000000000003', 'c0000000-0000-0000-0000-000000000001', 1, NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  `weight` = VALUES(`weight`),
+  `updated_at` = VALUES(`updated_at`);
 
 INSERT INTO `portal_user_favorite_tags` (`id`, `portal_user_id`, `tag_id`, `weight`, `created_at`, `updated_at`) VALUES
 (UUID(), '50000000-0000-0000-0000-000000000001', 't0000000-0000-0000-0000-000000000004', 1, NOW(), NOW()),
 (UUID(), '50000000-0000-0000-0000-000000000001', 't0000000-0000-0000-0000-000000000007', 1, NOW(), NOW()),
 (UUID(), '50000000-0000-0000-0000-000000000002', 't0000000-0000-0000-0000-000000000003', 1, NOW(), NOW()),
-(UUID(), '50000000-0000-0000-0000-000000000003', 't0000000-0000-0000-0000-000000000001', 1, NOW(), NOW());
+(UUID(), '50000000-0000-0000-0000-000000000003', 't0000000-0000-0000-0000-000000000001', 1, NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  `weight` = VALUES(`weight`),
+  `updated_at` = VALUES(`updated_at`);
 
 INSERT INTO `portal_user_favorite_authors` (`id`, `portal_user_id`, `author_id`, `weight`, `created_at`, `updated_at`) VALUES
 (UUID(), '50000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000003', 1, NOW(), NOW()),
 (UUID(), '50000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000002', 1, NOW(), NOW()),
-(UUID(), '50000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000001', 1, NOW(), NOW());
+(UUID(), '50000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000001', 1, NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  `weight` = VALUES(`weight`),
+  `updated_at` = VALUES(`updated_at`);
 
 INSERT INTO `portal_user_saved_posts` (`id`, `portal_user_id`, `news_id`, `saved_at`, `created_at`, `updated_at`) VALUES
 (UUID(), '50000000-0000-0000-0000-000000000001', 'n0000000-0000-0000-0000-000000000005', NOW(), NOW(), NOW()),
 (UUID(), '50000000-0000-0000-0000-000000000001', 'n0000000-0000-0000-0000-000000000010', NOW(), NOW(), NOW()),
 (UUID(), '50000000-0000-0000-0000-000000000002', 'n0000000-0000-0000-0000-000000000008', NOW(), NOW(), NOW()),
-(UUID(), '50000000-0000-0000-0000-000000000003', 'n0000000-0000-0000-0000-000000000001', NOW(), NOW(), NOW());
+(UUID(), '50000000-0000-0000-0000-000000000003', 'n0000000-0000-0000-0000-000000000001', NOW(), NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  `saved_at` = VALUES(`saved_at`),
+  `updated_at` = VALUES(`updated_at`);
 
 INSERT INTO `portal_user_interactions` (`id`, `portal_user_id`, `news_id`, `category_id`, `tag_id`, `author_id`, `action`, `context`, `time_spent_seconds`, `score_delta`, `metadata`, `created_at`) VALUES
 (UUID(), '50000000-0000-0000-0000-000000000001', 'n0000000-0000-0000-0000-000000000005', 'c0000000-0000-0000-0000-000000000004', 't0000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000003', 'view_post', 'seed', 180, 0, JSON_OBJECT('source','test_data_sql'), NOW()),

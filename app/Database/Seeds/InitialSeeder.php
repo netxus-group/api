@@ -14,7 +14,7 @@ class InitialSeeder extends Seeder
         $now = date('Y-m-d H:i:s');
 
         // ---- Roles ----
-        $this->db->table('role_profiles')->insertBatch([
+        $roles = [
             [
                 'id'           => '00000000-0000-0000-0000-000000000001',
                 'name'         => 'super_admin',
@@ -47,10 +47,25 @@ class InitialSeeder extends Seeder
                 'created_at'   => $now,
                 'updated_at'   => $now,
             ],
-        ]);
+        ];
+        foreach ($roles as $role) {
+            $exists = $this->db->table('role_profiles')->where('id', $role['id'])->countAllResults() > 0;
+            if ($exists) {
+                $this->db->table('role_profiles')
+                    ->where('id', $role['id'])
+                    ->update([
+                        'name'         => $role['name'],
+                        'display_name' => $role['display_name'],
+                        'capabilities' => $role['capabilities'],
+                        'updated_at'   => $now,
+                    ]);
+                continue;
+            }
+            $this->db->table('role_profiles')->insert($role);
+        }
 
         // ---- Default Admin (password: Admin123!) ----
-        $this->db->table('users')->insert([
+        $admin = [
             'id'             => '10000000-0000-0000-0000-000000000001',
             'email'          => 'admin@netxus.com',
             'password_hash'  => password_hash('Admin123!', PASSWORD_BCRYPT, ['cost' => 10]),
@@ -61,22 +76,46 @@ class InitialSeeder extends Seeder
             'email_verified' => 1,
             'created_at'     => $now,
             'updated_at'     => $now,
-        ]);
+        ];
+        $adminExists = $this->db->table('users')->where('email', $admin['email'])->countAllResults() > 0;
+        if ($adminExists) {
+            $this->db->table('users')
+                ->where('email', $admin['email'])
+                ->update([
+                    'first_name'     => $admin['first_name'],
+                    'last_name'      => $admin['last_name'],
+                    'display_name'   => $admin['display_name'],
+                    'active'         => $admin['active'],
+                    'email_verified' => $admin['email_verified'],
+                    'updated_at'     => $now,
+                ]);
+            $adminId = (string) ($this->db->table('users')->select('id')->where('email', $admin['email'])->get()->getRow('id'));
+        } else {
+            $this->db->table('users')->insert($admin);
+            $adminId = $admin['id'];
+        }
 
-        $this->db->table('user_roles')->insert([
-            'id'              => '20000000-0000-0000-0000-000000000001',
-            'user_id'         => '10000000-0000-0000-0000-000000000001',
-            'role_profile_id' => '00000000-0000-0000-0000-000000000001',
-            'created_at'      => $now,
-        ]);
+        $adminRoleExists = $this->db->table('user_roles')
+            ->where('user_id', $adminId)
+            ->where('role_profile_id', '00000000-0000-0000-0000-000000000001')
+            ->countAllResults() > 0;
+        if (! $adminRoleExists) {
+            $this->db->table('user_roles')->insert([
+                'id'              => '20000000-0000-0000-0000-000000000001',
+                'user_id'         => $adminId,
+                'role_profile_id' => '00000000-0000-0000-0000-000000000001',
+                'created_at'      => $now,
+            ]);
+        }
 
         // ---- Integration Configs ----
-        $this->db->table('integration_configs')->insertBatch([
+        $integrations = [
             [
                 'id'           => '30000000-0000-0000-0000-000000000001',
                 'provider'     => 'weather',
+                'api_key'      => null,
                 'endpoint'     => 'https://api.open-meteo.com/v1/forecast',
-                'ttl'          => '30m',
+                'ttl'          => '1h',
                 'active'       => 1,
                 'extra_config' => json_encode(['latitude' => -34.6037, 'longitude' => -58.3816]),
                 'created_at'   => $now,
@@ -85,13 +124,31 @@ class InitialSeeder extends Seeder
             [
                 'id'         => '30000000-0000-0000-0000-000000000002',
                 'provider'   => 'dollar',
-                'endpoint'   => 'https://open.er-api.com/v6/latest/USD',
+                'endpoint'   => 'https://criptoya.com/api/dolar',
                 'ttl'        => '1h',
                 'active'     => 1,
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
-        ]);
+        ];
+        foreach ($integrations as $integration) {
+            $exists = $this->db->table('integration_configs')
+                ->where('provider', $integration['provider'])
+                ->countAllResults() > 0;
+            if ($exists) {
+                $this->db->table('integration_configs')
+                    ->where('provider', $integration['provider'])
+                    ->update([
+                        'endpoint'     => $integration['endpoint'],
+                        'ttl'          => $integration['ttl'],
+                        'active'       => $integration['active'],
+                        'extra_config' => $integration['extra_config'] ?? null,
+                        'updated_at'   => $now,
+                    ]);
+                continue;
+            }
+            $this->db->table('integration_configs')->insert($integration);
+        }
 
         // ---- Default Settings ----
         $settings = [
@@ -103,6 +160,17 @@ class InitialSeeder extends Seeder
         ];
 
         foreach ($settings as $key => $value) {
+            $exists = $this->db->table('settings')->where('key', $key)->countAllResults() > 0;
+            if ($exists) {
+                $this->db->table('settings')
+                    ->where('key', $key)
+                    ->update([
+                        'value'      => $value,
+                        'updated_at' => $now,
+                    ]);
+                continue;
+            }
+
             $this->db->table('settings')->insert([
                 'id'         => $this->uuid(),
                 'key'        => $key,

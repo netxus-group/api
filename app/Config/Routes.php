@@ -12,24 +12,54 @@ $routes->setDefaultController('Home');
 $routes->setDefaultMethod('index');
 $routes->setTranslateURIDashes(false);
 $routes->set404Override(static function () {
+    $request = service('request');
     $response = service('response');
-    $response->setStatusCode(404);
-    $response->setJSON([
+    $cors = config(\Config\Cors::class);
+    $origin = $request->getHeaderLine('Origin');
+    $allowedOrigins = array_map([\Config\Cors::class, 'normalizeOrigin'], $cors->allowedOrigins);
+    $normalizedOrigin = \Config\Cors::normalizeOrigin($origin);
+
+    if ($normalizedOrigin !== '' && in_array($normalizedOrigin, $allowedOrigins, true)) {
+        $response->setHeader('Access-Control-Allow-Origin', $normalizedOrigin);
+        $response->setHeader('Vary', 'Origin');
+        $response->setHeader('Access-Control-Allow-Methods', implode(', ', $cors->allowedMethods));
+        $response->setHeader('Access-Control-Allow-Headers', implode(', ', $cors->allowedHeaders));
+        $response->setHeader('Access-Control-Max-Age', (string) $cors->maxAge);
+        if ($cors->allowCredentials) {
+            $response->setHeader('Access-Control-Allow-Credentials', 'true');
+        }
+    }
+
+    // Browsers require a successful preflight response (2xx) for OPTIONS.
+    if (strtoupper($request->getMethod()) === 'OPTIONS') {
+        $response->setStatusCode(204);
+        return '';
+    }
+
+    $payload = [
         'status'  => 'error',
         'message' => 'Endpoint not found',
-    ]);
-    $response->send();
-    exit;
+    ];
+
+    $response->setStatusCode(404);
+    $response->setContentType('application/json');
+    return json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 });
 
 // ──────────────────────────────────────────────
-// HEALTH & VERSION (public)
+// SYSTEM (public)
 // ──────────────────────────────────────────────
-$routes->get('health', static function () {
-    return service('response')->setJSON(['status' => 'ok', 'timestamp' => date('c')]);
-});
+$routes->get('/', 'SystemController::index');
+$routes->match(['POST', 'PUT', 'PATCH', 'DELETE'], '/', 'SystemController::methodNotAllowed');
+
+$routes->get('health', 'SystemController::health');
+$routes->match(['POST', 'PUT', 'PATCH', 'DELETE'], 'health', 'SystemController::methodNotAllowed');
+$routes->get('uploads/(.*)', 'UploadsController::show/$1');
 $routes->get('version', static function () {
-    return service('response')->setJSON(['version' => '1.0.0']);
+    $response = service('response');
+    $response->setStatusCode(200);
+    $response->setContentType('application/json');
+    return json_encode(['version' => '1.0.0'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 });
 
 $routes->group('api', static function (RouteCollection $routes) {
@@ -65,28 +95,38 @@ $routes->group('api/v1', static function (RouteCollection $routes) {
 
     // ── AUTH (public) ──
     $routes->post('auth/login', 'AuthController::login');
-    $routes->options('auth/login', static fn() => service('response')->setStatusCode(204));
+    $routes->post('auth/refresh', 'AuthController::refresh');
+    $routes->post('auth/logout', 'AuthController::logout');
+    $routes->post('auth/forgot-password', 'AuthController::forgotPassword');
+    $routes->post('auth/reset-password', 'AuthController::resetPassword');
+    $routes->options('auth/login', static function () {
+        $response = service('response');
+        $response->setStatusCode(204);
+        return '';
+    });
 
     // ── AUTH (authenticated) ──
     $routes->group('auth', ['filter' => 'auth'], static function (RouteCollection $routes) {
-        $routes->post('refresh', 'AuthController::refresh');
-        $routes->post('logout', 'AuthController::logout');
         $routes->get('me', 'AuthController::me');
     });
 
     // ── PUBLIC API (no auth) ──
-    $routes->group('public', static function (RouteCollection $routes) {
+    $routes->group('public', ['filter' => 'publicApiToken'], static function (RouteCollection $routes) {
         $routes->get('home', 'PublicApiController::home');
         $routes->get('news', 'PublicApiController::newsList');
         $routes->get('news/(:segment)', 'PublicApiController::newsDetail/$1');
         $routes->get('categories', 'PublicApiController::categories');
         $routes->get('tags', 'PublicApiController::tags');
         $routes->get('authors', 'PublicApiController::authors');
+        $routes->get('ads', 'PublicApiController::ads');
         $routes->get('search', 'PublicApiController::search');
         $routes->post('metrics/events', 'PublicApiController::trackEvent');
         $routes->post('newsletter/subscribe', 'NewsletterController::subscribe');
         $routes->post('newsletter/unsubscribe', 'NewsletterController::unsubscribePublic');
         $routes->get('newsletter/unsubscribe', 'NewsletterController::unsubscribeLink');
+        $routes->get('integrations/weather', 'IntegrationsController::publicData/weather');
+        $routes->get('integrations/dollar', 'IntegrationsController::publicData/dollar');
+        $routes->get('integrations/crypto', 'IntegrationsController::publicData/crypto');
         $routes->get('integrations/(:segment)', 'IntegrationsController::publicData/$1');
     });
 
@@ -181,8 +221,11 @@ $routes->group('api/v1', static function (RouteCollection $routes) {
         // ── INTEGRATIONS (config) ──
         $routes->group('integrations', ['filter' => 'role:super_admin,editor'], static function (RouteCollection $routes) {
             $routes->post('config', 'IntegrationsController::listConfigs');
+            $routes->post('config/(:segment)', 'IntegrationsController::updateConfig/$1');
             $routes->put('config/(:segment)', 'IntegrationsController::updateConfig/$1');
             $routes->get('status', 'IntegrationsController::status');
+            $routes->post('refresh', 'IntegrationsController::refreshAll');
+            $routes->post('refresh/(:segment)', 'IntegrationsController::refresh/$1');
         });
 
         // ── HOME LAYOUT ──

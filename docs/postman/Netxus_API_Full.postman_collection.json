@@ -1,0 +1,2473 @@
+{
+    "info":  {
+                 "_postman_id":  "c23f3bd9-7550-4639-93d8-158fd99edd5f",
+                 "name":  "Netxus API - Full Collection",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "variable":  [
+                     {
+                         "key":  "host",
+                         "value":  "http://localhost:8080",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "baseApi",
+                         "value":  "{{host}}/api",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "baseApiV1",
+                         "value":  "{{host}}/api/v1",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "accessToken",
+                         "value":  "",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "refreshToken",
+                         "value":  "",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "portalAccessToken",
+                         "value":  "",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "portalRefreshToken",
+                         "value":  "",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "userId",
+                         "value":  "00000000-0000-0000-0000-000000000000",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "roleId",
+                         "value":  "00000000-0000-0000-0000-000000000000",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "authorId",
+                         "value":  "00000000-0000-0000-0000-000000000000",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "categoryId",
+                         "value":  "00000000-0000-0000-0000-000000000000",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "tagId",
+                         "value":  "00000000-0000-0000-0000-000000000000",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "newsId",
+                         "value":  "00000000-0000-0000-0000-000000000000",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "imageId",
+                         "value":  "00000000-0000-0000-0000-000000000000",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "adSlotId",
+                         "value":  "00000000-0000-0000-0000-000000000000",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "pollId",
+                         "value":  "00000000-0000-0000-0000-000000000000",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "subscriberId",
+                         "value":  "00000000-0000-0000-0000-000000000000",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "postId",
+                         "value":  "00000000-0000-0000-0000-000000000000",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "slug",
+                         "value":  "demo-slug",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "provider",
+                         "value":  "dollar",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "publicApiToken",
+                         "value":  "",
+                         "type":  "string"
+                     }
+                 ],
+    "item":  [
+                 {
+                     "name":  "System",
+                     "item":  [
+                                  {
+                                      "name":  "GET /",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{host}}/"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /health",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{host}}/health"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /version",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{host}}/version"
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Portal Auth",
+                     "item":  [
+                                  {
+                                      "name":  "POST /api/portal-auth/register",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApi}}/portal-auth/register",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": \"lector@netxus.com\",\n  \"password\": \"Portal123!\",\n  \"first_name\": \"Nombre\",\n  \"last_name\": \"Apellido\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/portal-auth/login",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApi}}/portal-auth/login",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": \"lector@netxus.com\",\n  \"password\": \"Portal123!\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/portal-auth/refresh",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApi}}/portal-auth/refresh",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"refresh_token\": \"{{portalRefreshToken}}\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/portal-auth/logout",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApi}}/portal-auth/logout",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{portalAccessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"refresh_token\": \"{{portalRefreshToken}}\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/portal-auth/forgot-password",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApi}}/portal-auth/forgot-password",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": \"lector@netxus.com\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/portal-auth/reset-password",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApi}}/portal-auth/reset-password",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"token\": \"TOKEN_AQUI\",\n  \"password\": \"NuevaClave123!\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/portal-auth/me",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApi}}/portal-auth/me",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{portalAccessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Portal User",
+                     "item":  [
+                                  {
+                                      "name":  "GET /api/portal-user/profile",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApi}}/portal-user/profile",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{portalAccessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "PUT /api/portal-user/profile",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApi}}/portal-user/profile",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{portalAccessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"first_name\": \"Nombre\",\n  \"last_name\": \"Apellido\",\n  \"avatar_url\": \"https://example.com/avatar.jpg\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "PUT /api/portal-user/password",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApi}}/portal-user/password",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{portalAccessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"current_password\": \"Portal123!\",\n  \"new_password\": \"Portal456!\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/portal-user/preferences",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApi}}/portal-user/preferences",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{portalAccessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "PUT /api/portal-user/preferences",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApi}}/portal-user/preferences",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{portalAccessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"favorite_categories\": [],\n  \"favorite_tags\": [],\n  \"favorite_authors\": []\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/portal-user/saved-posts",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApi}}/portal-user/saved-posts",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{portalAccessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/portal-user/saved-posts/{postId}",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApi}}/portal-user/saved-posts/{{postId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{portalAccessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "DELETE /api/portal-user/saved-posts/{postId}",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApi}}/portal-user/saved-posts/{{postId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{portalAccessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/portal-user/interactions",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApi}}/portal-user/interactions",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{portalAccessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"news_id\": \"{{newsId}}\",\n  \"event_type\": \"view\",\n  \"metadata\": {}\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/portal-user/recommendations",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApi}}/portal-user/recommendations",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{portalAccessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/portal-user/home-feed",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApi}}/portal-user/home-feed",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{portalAccessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Auth v1",
+                     "item":  [
+                                  {
+                                      "name":  "POST /api/v1/auth/login",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/auth/login",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": \"admin@netxus.com\",\n  \"password\": \"Admin123!\"\n}"
+                                                               }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "const response = pm.response.json();",
+                                                                                    "const accessToken = response?.data?.accessToken;",
+                                                                                    "if (accessToken) {",
+                                                                                    "  pm.collectionVariables.set(\"accessToken\", accessToken);",
+                                                                                    "}",
+                                                                                    "const refreshToken = response?.data?.refreshToken;",
+                                                                                    "if (refreshToken) {",
+                                                                                    "  pm.collectionVariables.set(\"refreshToken\", refreshToken);",
+                                                                                    "}"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/auth/refresh",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/auth/refresh",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/auth/logout",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/auth/logout",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "OPTIONS /api/v1/auth/login",
+                                      "request":  {
+                                                      "method":  "OPTIONS",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/auth/login"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/auth/me",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/auth/me",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Public v1",
+                     "item":  [
+                                  {
+                                      "name":  "GET /api/v1/public/home",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "x-public-api-token",
+                                                                         "value":  "{{publicApiToken}}",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/public/home"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/public/news",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "x-public-api-token",
+                                                                         "value":  "{{publicApiToken}}",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/public/news"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/public/news/{slug}",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "x-public-api-token",
+                                                                         "value":  "{{publicApiToken}}",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/public/news/{{slug}}"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/public/categories",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "x-public-api-token",
+                                                                         "value":  "{{publicApiToken}}",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/public/categories"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/public/tags",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "x-public-api-token",
+                                                                         "value":  "{{publicApiToken}}",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/public/tags"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/public/authors",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "x-public-api-token",
+                                                                         "value":  "{{publicApiToken}}",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/public/authors"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/public/search",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "x-public-api-token",
+                                                                         "value":  "{{publicApiToken}}",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  "q=economia"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/public/metrics/events",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "x-public-api-token",
+                                                                         "value":  "{{publicApiToken}}",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/public/metrics/events",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"event\": \"page_view\",\n  \"path\": \"/noticia/slug\",\n  \"metadata\": {}\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/public/newsletter/subscribe",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "x-public-api-token",
+                                                                         "value":  "{{publicApiToken}}",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/public/newsletter/subscribe",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": \"mail@example.com\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/public/newsletter/unsubscribe",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "x-public-api-token",
+                                                                         "value":  "{{publicApiToken}}",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/public/newsletter/unsubscribe",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": \"mail@example.com\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/public/newsletter/unsubscribe",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "x-public-api-token",
+                                                                         "value":  "{{publicApiToken}}",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  "token=TOKEN_AQUI"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/public/integrations/{provider}",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "x-public-api-token",
+                                                                         "value":  "{{publicApiToken}}",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/public/integrations/{{provider}}"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/public/integrations/weather",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/public/integrations/weather"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/public/integrations/dollar",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/public/integrations/dollar"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/public/integrations/crypto",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/public/integrations/crypto"
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Users",
+                     "item":  [
+                                  {
+                                      "name":  "GET /api/v1/users",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/users/",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/users",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/users/",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": \"user@netxus.com\",\n  \"password\": \"Pass123!\",\n  \"first_name\": \"Nombre\",\n  \"last_name\": \"Apellido\",\n  \"role\": \"writer\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/users/special-permissions",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/users/special-permissions",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/users/{id}/profile",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/users/{{userId}}/profile",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "PUT /api/v1/users/{id}",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/users/{{userId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"first_name\": \"Nombre\",\n  \"last_name\": \"Apellido\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "PUT /api/v1/users/{id}/access",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/users/{{userId}}/access",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"active\": true\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "DELETE /api/v1/users/{id}",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/users/{{userId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Roles",
+                     "item":  [
+                                  {
+                                      "name":  "GET /api/v1/roles",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/roles",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/roles/special-permissions",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/roles/special-permissions",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "PUT /api/v1/roles/{id}",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/roles/{{roleId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"capabilities\": []\n}"
+                                                               }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Authors",
+                     "item":  [
+                                  {
+                                      "name":  "GET /api/v1/authors",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/authors/",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/authors",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/authors/",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"display_name\": \"Autor Demo\",\n  \"slug\": \"autor-demo\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "PUT /api/v1/authors/{id}",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/authors/{{authorId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"display_name\": \"Autor Editado\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "DELETE /api/v1/authors/{id}",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/authors/{{authorId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Categories",
+                     "item":  [
+                                  {
+                                      "name":  "GET /api/v1/categories",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/categories/",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/categories",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/categories/",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"name\": \"Nueva Categoria\",\n  \"slug\": \"nueva-categoria\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "PUT /api/v1/categories/{id}",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/categories/{{categoryId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"name\": \"Categoria Editada\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "DELETE /api/v1/categories/{id}",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/categories/{{categoryId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Tags",
+                     "item":  [
+                                  {
+                                      "name":  "GET /api/v1/tags",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/tags/",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/tags",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/tags/",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"name\": \"Nuevo Tag\",\n  \"slug\": \"nuevo-tag\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "PUT /api/v1/tags/{id}",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/tags/{{tagId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"name\": \"Tag Editado\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "DELETE /api/v1/tags/{id}",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/tags/{{tagId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "News",
+                     "item":  [
+                                  {
+                                      "name":  "GET /api/v1/news",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/news/",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/news/{id}",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/news/{{newsId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/news",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/news/",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"title\": \"Noticia Demo\",\n  \"slug\": \"noticia-demo\",\n  \"summary\": \"Resumen\",\n  \"content\": \"Contenido\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "PUT /api/v1/news/{id}",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/news/{{newsId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"title\": \"Noticia Editada\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/news/{id}/schedule",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/news/{{newsId}}/schedule",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"publish_at\": \"2026-12-31 10:00:00\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "DELETE /api/v1/news/{id}",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/news/{{newsId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Images",
+                     "item":  [
+                                  {
+                                      "name":  "GET /api/v1/images",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/images/",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/images/{id}",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/images/{{imageId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/images",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/images/",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"file_name\": \"demo.jpg\",\n  \"mime_type\": \"image/jpeg\",\n  \"base64\": \"...\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "PUT /api/v1/images/{id}",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/images/{{imageId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"title\": \"Nueva imagen\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "DELETE /api/v1/images/{id}",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/images/{{imageId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Ads",
+                     "item":  [
+                                  {
+                                      "name":  "GET /api/v1/ads/slots",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/ads/slots",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/ads/slots",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/ads/slots",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"placement\": \"home_top\",\n  \"name\": \"Banner principal\",\n  \"type\": \"image\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "PUT /api/v1/ads/slots/{id}",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/ads/slots/{{adSlotId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"name\": \"Banner actualizado\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "DELETE /api/v1/ads/slots/{id}",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/ads/slots/{{adSlotId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/ads/campaigns",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/ads/campaigns",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Polls",
+                     "item":  [
+                                  {
+                                      "name":  "GET /api/v1/polls",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/polls/",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/polls/{id}",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/polls/{{pollId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/polls",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/polls/",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"title\": \"Encuesta demo\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "PUT /api/v1/polls/{id}",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/polls/{{pollId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"title\": \"Encuesta editada\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "DELETE /api/v1/polls/{id}",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/polls/{{pollId}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/polls/{id}/respond",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/polls/{{pollId}}/respond",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"answers\": []\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/polls/{id}/stats",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/polls/{{pollId}}/stats",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Newsletter Admin",
+                     "item":  [
+                                  {
+                                      "name":  "GET /api/v1/newsletter/subscribers",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/newsletter/subscribers",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/newsletter/subscribers/{id}/unsubscribe",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/newsletter/subscribers/{{subscriberId}}/unsubscribe",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Integrations",
+                     "item":  [
+                                  {
+                                      "name":  "POST /api/v1/integrations/config",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/integrations/config",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "PUT /api/v1/integrations/config/{provider}",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/integrations/config/{{provider}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"enabled\": true\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/integrations/status",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/integrations/status",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Home Layout",
+                     "item":  [
+                                  {
+                                      "name":  "GET /api/v1/home-layout",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/home-layout/",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "PUT /api/v1/home-layout",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/home-layout/",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"layout\": {}\n}"
+                                                               }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Metrics",
+                     "item":  [
+                                  {
+                                      "name":  "GET /api/v1/metrics",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/metrics/",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/metrics/content",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/metrics/content",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/metrics/newsletter",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/metrics/newsletter",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/metrics/engagement",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/metrics/engagement",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/metrics/daily-engagement",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/metrics/daily-engagement",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Settings",
+                     "item":  [
+                                  {
+                                      "name":  "GET /api/v1/settings/me",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/settings/me",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "PUT /api/v1/settings/me",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/settings/me",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"theme\": \"dark\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/settings/general",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/settings/general",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "PUT /api/v1/settings/general",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/settings/general",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"site_name\": \"Netxus\"\n}"
+                                                               }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Reports",
+                     "item":  [
+                                  {
+                                      "name":  "GET /api/v1/reports/news/csv",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/reports/news/csv",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/reports/news/excel",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/reports/news/excel",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/reports/news/txt",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/reports/news/txt",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/reports/news/pdf",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/reports/news/pdf",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/reports/subscribers/csv",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/reports/subscribers/csv",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/reports/metrics/csv",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/reports/metrics/csv",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  }
+                              ]
+                 }
+             ]
+}

@@ -8,7 +8,9 @@ use CodeIgniter\CLI\CLI;
 /**
  * Refreshes all active external integrations (weather, dollar, etc.).
  *
- * Cron: */30 * * * * cd /path/to/project && php spark integrations:refresh
+ * Cron example (every 60 minutes):
+ * 60-minute schedule: `0 * * * *` in cron syntax.
+ * Command: cd /path/to/project && php spark integrations:refresh
  */
 class RefreshIntegrations extends BaseCommand
 {
