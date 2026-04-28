@@ -160,9 +160,22 @@ class AuthService
             'expires_at' => date('Y-m-d H:i:s', time() + $this->config->passwordResetExpires),
         ]);
 
+        $communication = service('communicationService');
+        $communication->sendTemplateEmail($user->email, 'password_reset', [
+            'user_name' => trim((string) ($user->first_name ?? '') . ' ' . (string) ($user->last_name ?? '')) ?: (string) $user->email,
+            'user_email' => (string) $user->email,
+            'reset_url' => rtrim(config('Communications')->dashboardUrl, '/') . '/?resetToken=' . $rawToken,
+            'expires_at' => date('Y-m-d H:i:s', time() + $this->config->passwordResetExpires),
+            'site_name' => config('Communications')->siteName,
+            'site_url' => config('Communications')->dashboardUrl,
+        ], [
+            'templateKey' => 'password_reset',
+            'recipient_user_id' => $user->id,
+            'dedupeKey' => 'password-reset:' . $user->id,
+        ]);
+
         return [
             'requested'  => true,
-            'resetToken' => $rawToken,
             'expiresIn'  => $this->config->passwordResetExpires,
         ];
     }

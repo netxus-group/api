@@ -180,6 +180,8 @@ class InitialSeeder extends Seeder
             ]);
         }
 
+        $this->call('CommunicationsSeeder');
+
         echo "✓ Initial seed completed: roles, admin user, integrations, settings\n";
     }
 

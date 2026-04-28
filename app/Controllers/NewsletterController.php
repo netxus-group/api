@@ -14,63 +14,75 @@ class NewsletterController extends BaseApiController
         $this->model = new NewsletterSubscriberModel();
     }
 
-    /** Public: subscribe */
     public function subscribe()
     {
-        $data   = $this->getJsonInput();
+        $data = $this->getJsonInput();
         $errors = $this->validateInput($data, 'subscribe');
         if ($errors) {
             return ApiResponse::validationError($errors);
         }
 
-        $email    = strtolower(trim($data['email']));
-        $existing = $this->model->findByEmail($email);
+        $email = strtolower(trim((string) $data['email']));
+        $name = trim((string) ($data['name'] ?? ''));
+        $source = trim((string) ($data['source'] ?? 'public'));
         $now = date('Y-m-d H:i:s');
+        $subscriber = $this->model->findByEmail($email);
+        $communication = service('communicationService');
 
-        if ($existing) {
-            if (($existing->status ?? '') === 'active') {
-                return ApiResponse::ok(null, 'Already subscribed');
-            }
-            $this->model->update($existing->id, [
-                'status' => 'active',
-                'updated_at' => $now,
-            ]);
+        if ($subscriber && strtolower((string) ($subscriber['status'] ?? $subscriber->status ?? '')) === 'active') {
             return ApiResponse::ok([
-                'subscriber' => [
-                    'id' => $existing->id,
-                    'email' => $email,
-                    'status' => 'active',
-                    'subscribedAt' => $existing->created_at ?? $now,
-                    'unsubscribedAt' => null,
-                    'source' => 'public',
-                ],
-            ], 'Subscription reactivated');
+                'subscriber' => $this->mapSubscriber($subscriber),
+            ], 'Already subscribed');
         }
 
-        $id = $this->uuid();
+        if ($subscriber) {
+            $id = (string) ($subscriber['id'] ?? $subscriber->id);
+            $this->model->update($id, [
+                'name' => $name !== '' ? $name : ($subscriber['name'] ?? null),
+                'source' => $source !== '' ? $source : ($subscriber['source'] ?? null),
+                'status' => 'active',
+                'confirmed_at' => $now,
+                'unsubscribe_token_hash' => null,
+                'unsubscribe_token_expires_at' => null,
+                'updated_at' => $now,
+            ]);
+            $rawToken = $communication->issueNewsletterUnsubscribeToken($id, $email);
+        } else {
+            $id = $this->uuid();
+            $this->model->insert([
+                'id' => $id,
+                'email' => $email,
+                'name' => $name !== '' ? $name : null,
+                'source' => $source !== '' ? $source : null,
+                'metadata' => json_encode(['source' => $source], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                'status' => 'active',
+                'confirmed_at' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            $rawToken = $communication->issueNewsletterUnsubscribeToken($id, $email);
+        }
 
-        $this->model->insert([
-            'id' => $id,
-            'email' => $email,
-            'name' => isset($data['name']) ? (string) $data['name'] : null,
-            'status' => 'active',
-            'created_at' => $now,
-            'updated_at' => $now,
+        $subscriber = $this->model->find($id);
+        $unsubscribeUrl = rtrim((string) config('App')->baseURL, '/') . '/api/v1/public/newsletter/unsubscribe/' . $rawToken;
+
+        $communication->sendTemplateEmail($email, 'newsletter_subscription', [
+            'user_name' => $name !== '' ? $name : $email,
+            'user_email' => $email,
+            'unsubscribe_url' => $unsubscribeUrl,
+            'site_name' => $communication->getConfig(false)['meta']['siteName'] ?? 'Netxus',
+            'site_url' => $communication->getConfig(false)['meta']['portalUrl'] ?? rtrim((string) config('App')->baseURL, '/'),
+        ], [
+            'templateKey' => 'newsletter_subscription',
+            'recipient_user_id' => null,
+            'dedupeKey' => 'newsletter-subscription:' . $id,
         ]);
 
         return ApiResponse::created([
-            'subscriber' => [
-                'id' => $id,
-                'email' => $email,
-                'status' => 'active',
-                'subscribedAt' => $now,
-                'unsubscribedAt' => null,
-                'source' => 'public',
-            ],
+            'subscriber' => $this->mapSubscriber($subscriber),
         ], 'Subscription created');
     }
 
-    /** Public: confirm */
     public function confirm()
     {
         $token = $this->request->getGet('token');
@@ -79,7 +91,7 @@ class NewsletterController extends BaseApiController
         }
 
         $jwtManager = service('jwtManager');
-        $payload    = $jwtManager->validateNewsletterToken($token);
+        $payload = $jwtManager->validateNewsletterToken($token);
         if (!$payload) {
             return ApiResponse::badRequest('Invalid or expired token');
         }
@@ -90,15 +102,14 @@ class NewsletterController extends BaseApiController
         }
 
         $this->model->update($subscriber->id, [
-            'status'             => 'active',
-            'confirmed_at'       => date('Y-m-d H:i:s'),
+            'status' => 'active',
+            'confirmed_at' => date('Y-m-d H:i:s'),
             'confirmation_token' => null,
         ]);
 
         return ApiResponse::ok(null, 'Subscription confirmed');
     }
 
-    /** Public: unsubscribe */
     public function unsubscribe()
     {
         $data = $this->getJsonInput();
@@ -106,19 +117,27 @@ class NewsletterController extends BaseApiController
             return ApiResponse::badRequest('Email required');
         }
 
-        $subscriber = $this->model->findByEmail($data['email']);
+        $email = strtolower(trim((string) $data['email']));
+        $subscriber = $this->model->findByEmail($email);
         if (!$subscriber) {
             return ApiResponse::notFound('Subscriber not found');
         }
 
-        $this->model->update($subscriber->id, [
-            'status' => 'unsubscribed',
-            'updated_at' => date('Y-m-d H:i:s'),
-        ]);
+        $this->unsubscribeSubscriber((string) $subscriber->id);
         return ApiResponse::ok(null, 'Unsubscribed successfully');
     }
 
-    /** Admin: list subscribers */
+    public function unsubscribeLink(string $token)
+    {
+        $subscriber = service('communicationService')->findSubscriberByUnsubscribeToken($token);
+        if (!$subscriber) {
+            return ApiResponse::notFound('Subscriber not found');
+        }
+
+        $this->unsubscribeSubscriber((string) ($subscriber['id'] ?? ''));
+        return ApiResponse::ok(null, 'Unsubscribed successfully');
+    }
+
     public function index()
     {
         [$page, $limit] = $this->paginationParams();
@@ -127,7 +146,8 @@ class NewsletterController extends BaseApiController
 
         $builder = $this->model;
         if ($status) {
-            $builder = $builder->where('status', $status);
+            $normalizedStatus = $status === 'subscribed' ? 'active' : ($status === 'unsubscribed' ? 'unsubscribed' : $status);
+            $builder = $builder->where('status', $normalizedStatus);
         }
         if ($search) {
             $builder = $builder->like('email', $search);
@@ -138,35 +158,16 @@ class NewsletterController extends BaseApiController
             ->limit($limit, ($page - 1) * $limit)
             ->findAll();
 
-        $items = array_map(function ($item) {
-            $row = is_object($item) && method_exists($item, 'toArray') ? $item->toArray() : (array) $item;
-            return [
-                'id' => (string) ($row['id'] ?? ''),
-                'email' => (string) ($row['email'] ?? ''),
-                'status' => (string) ($row['status'] ?? 'active'),
-                'subscribedAt' => $row['created_at'] ?? null,
-                'unsubscribedAt' => ($row['status'] ?? null) === 'unsubscribed' ? ($row['updated_at'] ?? null) : null,
-                'source' => 'public',
-                'metadata' => [],
-                'createdAt' => $row['created_at'] ?? null,
-                'updatedAt' => $row['updated_at'] ?? null,
-            ];
-        }, $rows);
+        $items = array_map(fn ($item) => $this->mapSubscriber($item), $rows);
 
         return ApiResponse::paginated($items, $total, $page, $limit);
     }
 
-    /**
-     * Backward-compatible alias for route target in Routes.php.
-     */
     public function subscribers()
     {
         return $this->index();
     }
 
-    /**
-     * Backward-compatible alias for route target in Routes.php.
-     */
     public function adminUnsubscribe(string $id)
     {
         $subscriber = $this->model->find($id);
@@ -174,46 +175,15 @@ class NewsletterController extends BaseApiController
             return ApiResponse::notFound('Subscriber not found');
         }
 
-        $this->model->update($id, [
-            'status' => 'unsubscribed',
-            'updated_at' => date('Y-m-d H:i:s'),
-        ]);
-
+        $this->unsubscribeSubscriber($id);
         return ApiResponse::ok(null, 'Subscriber unsubscribed');
     }
 
-    /**
-     * Backward-compatible alias for route target in Routes.php.
-     */
     public function unsubscribePublic()
     {
         return $this->unsubscribe();
     }
 
-    /**
-     * Backward-compatible alias for route target in Routes.php.
-     */
-    public function unsubscribeLink()
-    {
-        $email = (string) ($this->request->getGet('email') ?? '');
-        if ($email === '') {
-            return ApiResponse::badRequest('Email required');
-        }
-
-        $subscriber = $this->model->findByEmail(strtolower(trim($email)));
-        if (!$subscriber) {
-            return ApiResponse::notFound('Subscriber not found');
-        }
-
-        $this->model->update($subscriber->id, [
-            'status' => 'unsubscribed',
-            'updated_at' => date('Y-m-d H:i:s'),
-        ]);
-
-        return ApiResponse::ok(null, 'Unsubscribed successfully');
-    }
-
-    /** Admin: delete */
     public function delete(string $id)
     {
         $subscriber = $this->model->find($id);
@@ -225,19 +195,18 @@ class NewsletterController extends BaseApiController
         return ApiResponse::noContent('Subscriber removed');
     }
 
-    /** Admin: export */
     public function export()
     {
         $format = $this->request->getGet('format') ?? 'csv';
         $subscribers = $this->model
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'pending'])
             ->findAll();
 
         $exportService = service('exportService');
 
         switch ($format) {
             case 'csv':
-                $content  = $exportService->subscribersToCsv($subscribers);
+                $content = $exportService->subscribersToCsv($subscribers);
                 $filename = 'subscribers-' . date('Y-m-d') . '.csv';
                 return $this->response
                     ->setHeader('Content-Type', 'text/csv; charset=utf-8')
@@ -246,5 +215,34 @@ class NewsletterController extends BaseApiController
             default:
                 return ApiResponse::badRequest('Unsupported export format');
         }
+    }
+
+    private function unsubscribeSubscriber(string $id): void
+    {
+        $this->model->update($id, [
+            'status' => 'unsubscribed',
+            'unsubscribe_token_hash' => null,
+            'unsubscribe_token_expires_at' => null,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+    }
+
+    private function mapSubscriber($item): array
+    {
+        $row = is_object($item) && method_exists($item, 'toArray') ? $item->toArray() : (array) $item;
+        $status = (string) ($row['status'] ?? 'active');
+        $normalizedStatus = $status === 'unsubscribed' ? 'unsubscribed' : 'subscribed';
+
+        return [
+            'id' => (string) ($row['id'] ?? ''),
+            'email' => (string) ($row['email'] ?? ''),
+            'status' => $normalizedStatus,
+            'subscribedAt' => $row['confirmed_at'] ?? $row['created_at'] ?? null,
+            'unsubscribedAt' => $status === 'unsubscribed' ? ($row['updated_at'] ?? null) : null,
+            'source' => (string) ($row['source'] ?? 'public'),
+            'metadata' => isset($row['metadata']) && $row['metadata'] ? json_decode((string) $row['metadata'], true) : [],
+            'createdAt' => $row['created_at'] ?? null,
+            'updatedAt' => $row['updated_at'] ?? null,
+        ];
     }
 }

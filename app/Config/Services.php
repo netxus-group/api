@@ -11,6 +11,8 @@ use App\Services\MediaService;
 use App\Services\IntegrationService;
 use App\Services\MetricsService;
 use App\Services\PollService;
+use App\Services\CommunicationService;
+use App\Services\SurveyService;
 use App\Services\ExportService;
 use App\Services\PortalAuthService;
 use App\Services\PortalRecommendationService;
@@ -110,11 +112,29 @@ class Services extends BaseService
         return new PollService();
     }
 
+    public static function surveyService(bool $getShared = true): SurveyService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('surveyService');
+        }
+
+        return new SurveyService();
+    }
+
     public static function exportService(bool $getShared = true): ExportService
     {
         if ($getShared) {
             return static::getSharedInstance('exportService');
         }
         return new ExportService();
+    }
+
+    public static function communicationService(bool $getShared = true): CommunicationService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('communicationService');
+        }
+
+        return new CommunicationService();
     }
 }

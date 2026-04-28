@@ -63,6 +63,8 @@ $routes->get('version', static function () {
 });
 
 $routes->group('api', static function (RouteCollection $routes) {
+    $routes->post('password/forgot', 'AuthController::forgotPassword');
+    $routes->post('password/reset', 'AuthController::resetPassword');
     $routes->post('portal-auth/register', 'PortalAuthController::register');
     $routes->post('portal-auth/login', 'PortalAuthController::login');
     $routes->post('portal-auth/refresh', 'PortalAuthController::refresh');
@@ -86,6 +88,14 @@ $routes->group('api', static function (RouteCollection $routes) {
         $routes->post('interactions', 'PortalUserController::interactions');
         $routes->get('recommendations', 'PortalUserController::recommendations');
         $routes->get('home-feed', 'PortalUserController::homeFeed');
+        $routes->get('notifications', 'PortalUserController::notifications');
+        $routes->post('notifications/read-all', 'PortalUserController::markAllNotificationsRead');
+        $routes->post('notifications/(:segment)/read', 'PortalUserController::markNotificationRead/$1');
+    });
+
+    $routes->group('me', ['filter' => 'portalAuth'], static function (RouteCollection $routes) {
+        $routes->get('surveys/pending', 'PortalUserController::surveyPending');
+        $routes->get('surveys/completed', 'PortalUserController::surveyCompleted');
     });
 });
 // ──────────────────────────────────────────────
@@ -111,10 +121,15 @@ $routes->group('api/v1', static function (RouteCollection $routes) {
     });
 
     // ── PUBLIC API (no auth) ──
-    $routes->group('public', ['filter' => 'publicApiToken'], static function (RouteCollection $routes) {
+        $routes->group('public', ['filter' => 'publicApiToken'], static function (RouteCollection $routes) {
         $routes->get('home', 'PublicApiController::home');
         $routes->get('news', 'PublicApiController::newsList');
         $routes->get('news/(:segment)', 'PublicApiController::newsDetail/$1');
+        $routes->get('surveys', 'PublicApiController::surveys');
+        $routes->get('surveys/(:segment)', 'PublicApiController::survey/$1');
+        $routes->post('surveys/(:segment)/start', 'PublicApiController::surveyStart/$1');
+        $routes->post('surveys/(:segment)/sections/(:segment)/save', 'PublicApiController::surveySaveSection/$1/$2');
+        $routes->post('surveys/(:segment)/complete', 'PublicApiController::surveyComplete/$1');
         $routes->get('categories', 'PublicApiController::categories');
         $routes->get('tags', 'PublicApiController::tags');
         $routes->get('authors', 'PublicApiController::authors');
@@ -123,7 +138,7 @@ $routes->group('api/v1', static function (RouteCollection $routes) {
         $routes->post('metrics/events', 'PublicApiController::trackEvent');
         $routes->post('newsletter/subscribe', 'NewsletterController::subscribe');
         $routes->post('newsletter/unsubscribe', 'NewsletterController::unsubscribePublic');
-        $routes->get('newsletter/unsubscribe', 'NewsletterController::unsubscribeLink');
+        $routes->get('newsletter/unsubscribe/(:segment)', 'NewsletterController::unsubscribeLink/$1');
         $routes->get('integrations/weather', 'IntegrationsController::publicData/weather');
         $routes->get('integrations/dollar', 'IntegrationsController::publicData/dollar');
         $routes->get('integrations/crypto', 'IntegrationsController::publicData/crypto');
@@ -212,11 +227,43 @@ $routes->group('api/v1', static function (RouteCollection $routes) {
             $routes->get('(:segment)/stats', 'PollsController::stats/$1');
         });
 
+        $routes->group('surveys', ['filter' => 'role:super_admin,editor'], static function (RouteCollection $routes) {
+            $routes->get('/', 'SurveysController::index');
+            $routes->get('stats', 'SurveysController::stats');
+            $routes->get('incomplete-users', 'SurveysController::incompleteUsers');
+            $routes->get('(:segment)', 'SurveysController::show/$1');
+            $routes->post('/', 'SurveysController::create');
+            $routes->put('(:segment)', 'SurveysController::update/$1');
+            $routes->patch('(:segment)/status', 'SurveysController::changeStatus/$1');
+            $routes->delete('(:segment)', 'SurveysController::delete/$1');
+            $routes->get('(:segment)/stats', 'SurveysController::surveyStats/$1');
+            $routes->get('(:segment)/responses', 'SurveysController::responses/$1');
+            $routes->get('(:segment)/export/excel', 'SurveysController::exportExcel/$1');
+            $routes->post('reminders/run', 'SurveysController::runReminders');
+            $routes->post('(:segment)/notify', 'SurveysController::notify/$1');
+            $routes->get('(:segment)/notification-stats', 'SurveysController::notificationStats/$1');
+        });
+
         // ── NEWSLETTER (admin) ──
         $routes->group('newsletter', ['filter' => 'role:super_admin,editor'], static function (RouteCollection $routes) {
             $routes->get('subscribers', 'NewsletterController::subscribers');
             $routes->post('subscribers/(:segment)/unsubscribe', 'NewsletterController::adminUnsubscribe/$1');
         });
+
+        $routes->group('communications', ['filter' => 'role:super_admin,editor'], static function (RouteCollection $routes) {
+            $routes->get('config', 'CommunicationsController::config');
+            $routes->put('config', 'CommunicationsController::config');
+            $routes->get('templates', 'CommunicationsController::templates');
+            $routes->put('templates/(:segment)', 'CommunicationsController::templates/$1');
+            $routes->post('templates/(:segment)/test', 'CommunicationsController::templateTest/$1');
+            $routes->post('test-email', 'CommunicationsController::testEmail');
+            $routes->get('logs', 'CommunicationsController::logs');
+            $routes->get('newsletter/campaigns', 'CommunicationsController::campaigns');
+            $routes->post('newsletter/send-test', 'CommunicationsController::newsletterSendTest');
+            $routes->post('newsletter/send', 'CommunicationsController::newsletterSend');
+            $routes->post('surveys/reminders/run', 'CommunicationsController::runSurveyReminders');
+        });
+
 
         // ── INTEGRATIONS (config) ──
         $routes->group('integrations', ['filter' => 'role:super_admin,editor'], static function (RouteCollection $routes) {

@@ -59,6 +59,7 @@ class Auth extends BaseConfig
             'images.manage', 'images.delete',
             'ads.manage', 'newsletter.manage',
             'integrations.manage', 'home_layout.manage',
+            'surveys.manage', 'surveys.export',
             'polls.manage', 'settings.manage',
         ],
         'writer' => [

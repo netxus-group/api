@@ -195,6 +195,86 @@ class PublicApiController extends BaseApiController
         return ApiResponse::ok($poll);
     }
 
+    public function survey(string $slug)
+    {
+        $portalUserId = $this->portalUserIdFromBearer();
+        $anonymousKey = (string) ($this->request->getGet('anonymousKey') ?? '');
+
+        $survey = service('surveyService')->getSurveyBySlug($slug, $portalUserId, $anonymousKey !== '' ? $anonymousKey : null);
+        if (!$survey) {
+            return ApiResponse::notFound('Survey not found');
+        }
+
+        return ApiResponse::ok($survey);
+    }
+
+    public function surveys()
+    {
+        $portalUserId = $this->portalUserIdFromBearer();
+
+        return ApiResponse::ok(service('surveyService')->listPublicSurveys($portalUserId));
+    }
+
+    public function surveyStart(string $slug)
+    {
+        $data = $this->getJsonInput();
+        $portalUserId = $this->portalUserIdFromBearer();
+
+        try {
+            $payload = service('surveyService')->startResponse(
+                $slug,
+                $portalUserId,
+                isset($data['anonymousKey']) ? (string) $data['anonymousKey'] : null,
+                $this->request->getIPAddress(),
+                $this->request->getUserAgent()->getAgentString()
+            );
+            return ApiResponse::ok($payload, 'Survey started');
+        } catch (\RuntimeException $exception) {
+            return $this->mapSurveyException($exception);
+        }
+    }
+
+    public function surveySaveSection(string $slug, string $sectionId)
+    {
+        $data = $this->getJsonInput();
+        $portalUserId = $this->portalUserIdFromBearer();
+
+        try {
+            $payload = service('surveyService')->saveSection(
+                $slug,
+                $sectionId,
+                $data,
+                $portalUserId,
+                isset($data['anonymousKey']) ? (string) $data['anonymousKey'] : null,
+                $this->request->getIPAddress(),
+                $this->request->getUserAgent()->getAgentString()
+            );
+            return ApiResponse::ok($payload, 'Section saved');
+        } catch (\RuntimeException $exception) {
+            return $this->mapSurveyException($exception);
+        }
+    }
+
+    public function surveyComplete(string $slug)
+    {
+        $data = $this->getJsonInput();
+        $portalUserId = $this->portalUserIdFromBearer();
+
+        try {
+            $payload = service('surveyService')->completeSurvey(
+                $slug,
+                $data,
+                $portalUserId,
+                isset($data['anonymousKey']) ? (string) $data['anonymousKey'] : null,
+                $this->request->getIPAddress(),
+                $this->request->getUserAgent()->getAgentString()
+            );
+            return ApiResponse::ok($payload, 'Survey completed');
+        } catch (\RuntimeException $exception) {
+            return $this->mapSurveyException($exception);
+        }
+    }
+
     /**
      * @param array<int, mixed> $items
      * @return array<int, array<string, mixed>>
@@ -241,5 +321,31 @@ class PublicApiController extends BaseApiController
         }
 
         return (array) $item;
+    }
+
+    private function portalUserIdFromBearer(): ?string
+    {
+        $header = trim($this->request->getHeaderLine('Authorization'));
+        if ($header === '' || !preg_match('/^Bearer\s+(.+)$/i', $header, $matches)) {
+            return null;
+        }
+
+        try {
+            $decoded = service('portalJwtManager')->validateAccessToken(trim($matches[1]));
+            return (string) ($decoded->sub ?? '');
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private function mapSurveyException(\RuntimeException $exception)
+    {
+        return match ($exception->getCode()) {
+            401 => ApiResponse::unauthorized($exception->getMessage()),
+            404 => ApiResponse::notFound($exception->getMessage()),
+            409 => ApiResponse::conflict($exception->getMessage()),
+            422 => ApiResponse::validationError(['survey' => $exception->getMessage()]),
+            default => ApiResponse::badRequest($exception->getMessage()),
+        };
     }
 }

@@ -15,7 +15,7 @@ class PortalUserController extends PortalBaseApiController
 
         $service = service('portalUserService');
 
-        if ($this->request->getMethod() === 'get') {
+        if ($this->isRequestMethod('get')) {
             $profile = $service->getProfile($portalUserId);
             if (!$profile) {
                 return ApiResponse::notFound('Portal user profile not found');
@@ -71,7 +71,7 @@ class PortalUserController extends PortalBaseApiController
 
         $service = service('portalUserService');
 
-        if ($this->request->getMethod() === 'get') {
+        if ($this->isRequestMethod('get')) {
             return ApiResponse::ok($service->getPreferences($portalUserId));
         }
 
@@ -175,6 +175,72 @@ class PortalUserController extends PortalBaseApiController
         $payload = $service->getHomeFeed($portalUserId, $limit);
 
         return ApiResponse::ok($payload, 'Personalized home feed ready');
+    }
+
+    public function surveyPending()
+    {
+        $portalUserId = $this->portalUserId();
+        if (!$portalUserId) {
+            return ApiResponse::unauthorized('Portal user not authenticated');
+        }
+
+        return ApiResponse::ok(service('surveyService')->pendingForUser($portalUserId));
+    }
+
+    public function surveyCompleted()
+    {
+        $portalUserId = $this->portalUserId();
+        if (!$portalUserId) {
+            return ApiResponse::unauthorized('Portal user not authenticated');
+        }
+
+        return ApiResponse::ok(service('surveyService')->completedForUser($portalUserId));
+    }
+
+    public function notifications()
+    {
+        $portalUserId = $this->portalUserId();
+        if (!$portalUserId) {
+            return ApiResponse::unauthorized('Portal user not authenticated');
+        }
+
+        $page = max(1, (int) ($this->request->getGet('page') ?? 1));
+        $perPage = min(50, max(1, (int) ($this->request->getGet('perPage') ?? 20)));
+        $unreadOnly = in_array(strtolower((string) ($this->request->getGet('unreadOnly') ?? '0')), ['1', 'true', 'yes'], true);
+
+        $payload = service('portalUserService')->listNotifications($portalUserId, $unreadOnly, $page, $perPage);
+
+        return ApiResponse::ok($payload, 'Notifications loaded');
+    }
+
+    public function markNotificationRead(string $notificationId)
+    {
+        $portalUserId = $this->portalUserId();
+        if (!$portalUserId) {
+            return ApiResponse::unauthorized('Portal user not authenticated');
+        }
+
+        try {
+            $notification = service('portalUserService')->markNotificationRead($portalUserId, $notificationId);
+            return ApiResponse::ok($notification, 'Notification marked as read');
+        } catch (\RuntimeException $exception) {
+            return $this->mapException($exception);
+        }
+    }
+
+    public function markAllNotificationsRead()
+    {
+        $portalUserId = $this->portalUserId();
+        if (!$portalUserId) {
+            return ApiResponse::unauthorized('Portal user not authenticated');
+        }
+
+        try {
+            $payload = service('portalUserService')->markAllNotificationsRead($portalUserId);
+            return ApiResponse::ok($payload, 'Notifications marked as read');
+        } catch (\RuntimeException $exception) {
+            return $this->mapException($exception);
+        }
     }
 
     private function mapException(\RuntimeException $exception)

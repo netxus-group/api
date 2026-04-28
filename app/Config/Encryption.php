@@ -89,4 +89,12 @@ class Encryption extends BaseConfig
      * by CI3 Encryption default configuration.
      */
     public string $cipher = 'AES-256-CTR';
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $fallbackKey = (string) env('JWT_SECRET', (string) env('PUBLIC_API_SECRET', 'netxus-communications-fallback-key'));
+        $this->key = (string) env('ENCRYPTION_KEY', $this->key ?: $fallbackKey);
+    }
 }

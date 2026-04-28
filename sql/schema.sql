@@ -686,5 +686,148 @@ CREATE TABLE IF NOT EXISTS `portal_user_password_resets` (
   KEY `idx_portal_user_password_resets_expires_at` (`expires_at`),
   CONSTRAINT `fk_portal_user_password_resets_user` FOREIGN KEY (`portal_user_id`) REFERENCES `portal_users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------
+-- 35. Surveys
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `surveys` (
+  `id` CHAR(36) NOT NULL,
+  `title` VARCHAR(300) NOT NULL,
+  `slug` VARCHAR(180) NOT NULL,
+  `description` TEXT DEFAULT NULL,
+  `initial_message` TEXT DEFAULT NULL,
+  `final_message` TEXT DEFAULT NULL,
+  `status` ENUM('draft','published','paused','closed') NOT NULL DEFAULT 'draft',
+  `starts_at` DATETIME DEFAULT NULL,
+  `ends_at` DATETIME DEFAULT NULL,
+  `requires_login` TINYINT(1) NOT NULL DEFAULT 0,
+  `allow_back_navigation` TINYINT(1) NOT NULL DEFAULT 0,
+  `questions_per_view` INT UNSIGNED DEFAULT NULL,
+  `created_by` CHAR(36) DEFAULT NULL,
+  `updated_by` CHAR(36) DEFAULT NULL,
+  `created_at` DATETIME DEFAULT NULL,
+  `updated_at` DATETIME DEFAULT NULL,
+  `deleted_at` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_surveys_slug` (`slug`),
+  KEY `idx_surveys_status` (`status`),
+  KEY `idx_surveys_starts_at` (`starts_at`),
+  KEY `idx_surveys_ends_at` (`ends_at`),
+  KEY `idx_surveys_deleted_at` (`deleted_at`),
+  CONSTRAINT `fk_surveys_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_surveys_updated_by` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------
+-- 36. Survey Sections
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `survey_sections` (
+  `id` CHAR(36) NOT NULL,
+  `survey_id` CHAR(36) NOT NULL,
+  `title` VARCHAR(255) NOT NULL,
+  `description` TEXT DEFAULT NULL,
+  `sort_order` INT UNSIGNED NOT NULL DEFAULT 1,
+  `created_at` DATETIME DEFAULT NULL,
+  `updated_at` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_survey_sections_survey` (`survey_id`),
+  KEY `idx_survey_sections_order` (`survey_id`,`sort_order`),
+  CONSTRAINT `fk_survey_sections_survey` FOREIGN KEY (`survey_id`) REFERENCES `surveys` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------
+-- 37. Survey Questions
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `survey_questions` (
+  `id` CHAR(36) NOT NULL,
+  `survey_id` CHAR(36) NOT NULL,
+  `section_id` CHAR(36) NOT NULL,
+  `question_text` VARCHAR(500) NOT NULL,
+  `help_text` TEXT DEFAULT NULL,
+  `type` ENUM('short_text','long_text','single_choice','multiple_choice','dropdown','numeric_scale','date') NOT NULL DEFAULT 'short_text',
+  `is_required` TINYINT(1) NOT NULL DEFAULT 0,
+  `sort_order` INT UNSIGNED NOT NULL DEFAULT 1,
+  `config` JSON DEFAULT NULL,
+  `created_at` DATETIME DEFAULT NULL,
+  `updated_at` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_survey_questions_survey` (`survey_id`),
+  KEY `idx_survey_questions_section` (`section_id`),
+  KEY `idx_survey_questions_order` (`section_id`,`sort_order`),
+  CONSTRAINT `fk_survey_questions_survey` FOREIGN KEY (`survey_id`) REFERENCES `surveys` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_survey_questions_section` FOREIGN KEY (`section_id`) REFERENCES `survey_sections` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------
+-- 38. Survey Question Options
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `survey_question_options` (
+  `id` CHAR(36) NOT NULL,
+  `question_id` CHAR(36) NOT NULL,
+  `label` VARCHAR(255) NOT NULL,
+  `value` VARCHAR(255) NOT NULL,
+  `sort_order` INT UNSIGNED NOT NULL DEFAULT 1,
+  `created_at` DATETIME DEFAULT NULL,
+  `updated_at` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_survey_question_options_question` (`question_id`),
+  KEY `idx_survey_question_options_order` (`question_id`,`sort_order`),
+  CONSTRAINT `fk_survey_question_options_question` FOREIGN KEY (`question_id`) REFERENCES `survey_questions` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------
+-- 39. Survey Responses
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `survey_responses` (
+  `id` CHAR(36) NOT NULL,
+  `survey_id` CHAR(36) NOT NULL,
+  `user_id` CHAR(36) DEFAULT NULL,
+  `anonymous_key` VARCHAR(128) DEFAULT NULL,
+  `status` ENUM('in_progress','completed') NOT NULL DEFAULT 'in_progress',
+  `current_section_id` CHAR(36) DEFAULT NULL,
+  `completed_at` DATETIME DEFAULT NULL,
+  `ip_hash` VARCHAR(128) DEFAULT NULL,
+  `user_agent_hash` VARCHAR(128) DEFAULT NULL,
+  `created_at` DATETIME DEFAULT NULL,
+  `updated_at` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_survey_responses_user` (`survey_id`,`user_id`),
+  UNIQUE KEY `uk_survey_responses_anon` (`survey_id`,`anonymous_key`),
+  KEY `idx_survey_responses_survey` (`survey_id`),
+  KEY `idx_survey_responses_status` (`status`),
+  KEY `idx_survey_responses_completed_at` (`completed_at`),
+  KEY `idx_survey_responses_current_section` (`current_section_id`),
+  KEY `idx_survey_responses_ip_hash` (`ip_hash`),
+  KEY `idx_survey_responses_user_agent_hash` (`user_agent_hash`),
+  CONSTRAINT `fk_survey_responses_survey` FOREIGN KEY (`survey_id`) REFERENCES `surveys` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_survey_responses_user` FOREIGN KEY (`user_id`) REFERENCES `portal_users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_survey_responses_current_section` FOREIGN KEY (`current_section_id`) REFERENCES `survey_sections` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------
+-- 40. Survey Answers
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `survey_answers` (
+  `id` CHAR(36) NOT NULL,
+  `survey_response_id` CHAR(36) NOT NULL,
+  `survey_id` CHAR(36) NOT NULL,
+  `section_id` CHAR(36) NOT NULL,
+  `question_id` CHAR(36) NOT NULL,
+  `value_text` TEXT DEFAULT NULL,
+  `value_json` JSON DEFAULT NULL,
+  `created_at` DATETIME DEFAULT NULL,
+  `updated_at` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_survey_answers_response_question` (`survey_response_id`,`question_id`),
+  KEY `idx_survey_answers_response` (`survey_response_id`),
+  KEY `idx_survey_answers_survey` (`survey_id`),
+  KEY `idx_survey_answers_section` (`section_id`),
+  KEY `idx_survey_answers_question` (`question_id`),
+  CONSTRAINT `fk_survey_answers_response` FOREIGN KEY (`survey_response_id`) REFERENCES `survey_responses` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_survey_answers_survey` FOREIGN KEY (`survey_id`) REFERENCES `surveys` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_survey_answers_section` FOREIGN KEY (`section_id`) REFERENCES `survey_sections` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_survey_answers_question` FOREIGN KEY (`question_id`) REFERENCES `survey_questions` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET FOREIGN_KEY_CHECKS = 1;
 

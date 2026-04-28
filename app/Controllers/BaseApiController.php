@@ -95,6 +95,14 @@ abstract class BaseApiController extends Controller
     }
 
     /**
+     * Check the current request HTTP method.
+     */
+    protected function isRequestMethod(string $method): bool
+    {
+        return strtolower((string) $this->request->getMethod()) === strtolower($method);
+    }
+
+    /**
      * Get JSON body from request.
      */
     protected function getJsonInput(): array

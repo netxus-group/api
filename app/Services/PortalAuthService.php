@@ -76,6 +76,28 @@ class PortalAuthService
             'personalization_opt_in' => 1,
         ]);
 
+        $communication = service('communicationService');
+        $communication->sendTemplateEmail($email, 'welcome_user', [
+            'user_name' => $displayName !== '' ? $displayName : $email,
+            'user_email' => $email,
+            'site_name' => config('Communications')->siteName,
+            'site_url' => config('Communications')->portalUrl,
+        ], [
+            'templateKey' => 'welcome_user',
+            'recipient_user_id' => $portalUserId,
+            'dedupeKey' => 'portal-welcome:' . $portalUserId,
+        ]);
+
+        service('portalUserService')->createNotification($portalUserId, [
+            'type' => 'welcome',
+            'title' => 'Bienvenido a Netxus',
+            'body' => 'Tu cuenta fue creada correctamente. Ya podes seguir noticias, encuestas y novedades.',
+            'url' => rtrim((string) config('Communications')->portalUrl, '/') . '/mi-perfil',
+            'metadata' => [
+                'email' => $email,
+            ],
+        ], 'welcome_user:' . $portalUserId);
+
         $this->clearRateLimit('register', $email . '|' . $ipAddress);
 
         $user = $this->portalUserModel->find($portalUserId);
@@ -155,9 +177,22 @@ class PortalAuthService
             'expires_at' => date('Y-m-d H:i:s', time() + $this->config->passwordResetExpires),
         ]);
 
+        $communication = service('communicationService');
+        $communication->sendTemplateEmail($email, 'password_reset', [
+            'user_name' => (string) ($user['display_name'] ?? $email),
+            'user_email' => $email,
+            'reset_url' => rtrim(config('Communications')->portalUrl, '/') . '/auth/login?resetToken=' . $rawToken,
+            'expires_at' => date('Y-m-d H:i:s', time() + $this->config->passwordResetExpires),
+            'site_name' => config('Communications')->siteName,
+            'site_url' => config('Communications')->portalUrl,
+        ], [
+            'templateKey' => 'password_reset',
+            'recipient_user_id' => $user['id'],
+            'dedupeKey' => 'portal-password-reset:' . $user['id'],
+        ]);
+
         return [
             'requested' => true,
-            'resetToken' => $rawToken,
             'expiresIn' => $this->config->passwordResetExpires,
         ];
     }

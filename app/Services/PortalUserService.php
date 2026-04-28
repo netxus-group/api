@@ -7,6 +7,7 @@ use App\Models\PortalUserFavoriteCategoryModel;
 use App\Models\PortalUserFavoriteTagModel;
 use App\Models\PortalUserInteractionModel;
 use App\Models\PortalUserPreferenceModel;
+use App\Models\PortalUserNotificationModel;
 use App\Models\PortalUserSavedPostModel;
 use App\Models\PortalUserModel;
 
@@ -19,6 +20,7 @@ class PortalUserService
     private PortalUserFavoriteAuthorModel $favoriteAuthorModel;
     private PortalUserSavedPostModel $savedPostModel;
     private PortalUserInteractionModel $interactionModel;
+    private PortalUserNotificationModel $notificationModel;
 
     public function __construct()
     {
@@ -29,6 +31,7 @@ class PortalUserService
         $this->favoriteAuthorModel = new PortalUserFavoriteAuthorModel();
         $this->savedPostModel = new PortalUserSavedPostModel();
         $this->interactionModel = new PortalUserInteractionModel();
+        $this->notificationModel = new PortalUserNotificationModel();
     }
 
     public function getProfile(string $portalUserId): ?array
@@ -373,6 +376,160 @@ class PortalUserService
         ];
     }
 
+    public function createNotification(string $portalUserId, array $payload, ?string $eventKey = null): ?array
+    {
+        if (!$this->hasNotificationsTable()) {
+            return null;
+        }
+
+        $title = $this->trimNullable($payload['title'] ?? null, 255);
+        if ($title === null) {
+            return null;
+        }
+
+        $eventKey = trim((string) ($eventKey ?? ($payload['eventKey'] ?? '')));
+        if ($eventKey !== '') {
+            $existing = $this->notificationModel->findByUserAndEventKey($portalUserId, $eventKey);
+            if ($existing) {
+                return $this->formatNotificationRow($existing);
+            }
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $row = [
+            'id' => $this->uuid(),
+            'portal_user_id' => $portalUserId,
+            'event_key' => $eventKey !== '' ? $eventKey : $this->uuid(),
+            'type' => $this->trimNullable($payload['type'] ?? null, 60) ?? 'general',
+            'title' => $title,
+            'body' => $this->trimNullable($payload['body'] ?? null, 2000),
+            'url' => $this->trimNullable($payload['url'] ?? null, 500),
+            'metadata_json' => array_key_exists('metadata', $payload) && is_array($payload['metadata'])
+                ? json_encode($payload['metadata'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                : null,
+            'is_read' => 0,
+            'read_at' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+
+        $this->notificationModel->insert($row);
+
+        return $this->formatNotificationRow($row);
+    }
+
+    public function listNotifications(string $portalUserId, bool $unreadOnly = false, int $page = 1, int $perPage = 20): array
+    {
+        if (!$this->hasNotificationsTable()) {
+            return [
+                'items' => [],
+                'meta' => [
+                    'total' => 0,
+                    'page' => max(1, $page),
+                    'perPage' => min(50, max(1, $perPage)),
+                    'totalPages' => 0,
+                    'unreadCount' => 0,
+                ],
+            ];
+        }
+
+        $page = max(1, $page);
+        $perPage = min(50, max(1, $perPage));
+
+        $builder = $this->notificationModel->where('portal_user_id', $portalUserId);
+        if ($unreadOnly) {
+            $builder->where('is_read', 0);
+        }
+
+        $total = $builder->countAllResults(false);
+
+        $rows = $builder->orderBy('created_at', 'DESC')
+            ->limit($perPage, ($page - 1) * $perPage)
+            ->findAll();
+
+        return [
+            'items' => array_map(fn(array $row) => $this->formatNotificationRow($row), $rows),
+            'meta' => [
+                'total' => $total,
+                'page' => $page,
+                'perPage' => $perPage,
+                'totalPages' => (int) ceil($total / max($perPage, 1)),
+                'unreadCount' => $this->notificationModel->unreadCount($portalUserId),
+            ],
+        ];
+    }
+
+    public function unreadNotificationCount(string $portalUserId): int
+    {
+        if (!$this->hasNotificationsTable()) {
+            return 0;
+        }
+
+        return $this->notificationModel->unreadCount($portalUserId);
+    }
+
+    public function markNotificationRead(string $portalUserId, string $notificationId): array
+    {
+        if (!$this->hasNotificationsTable()) {
+            throw new \RuntimeException('Notification not found', 404);
+        }
+
+        $row = $this->notificationModel
+            ->where('portal_user_id', $portalUserId)
+            ->where('id', $notificationId)
+            ->first();
+
+        if (!$row) {
+            throw new \RuntimeException('Notification not found', 404);
+        }
+
+        if ((int) ($row['is_read'] ?? 0) !== 1) {
+            $now = date('Y-m-d H:i:s');
+            $this->notificationModel->update($row['id'], [
+                'is_read' => 1,
+                'read_at' => $now,
+                'updated_at' => $now,
+            ]);
+            $row['is_read'] = 1;
+            $row['read_at'] = $now;
+            $row['updated_at'] = $now;
+        }
+
+        return $this->formatNotificationRow($row);
+    }
+
+    public function markAllNotificationsRead(string $portalUserId): array
+    {
+        if (!$this->hasNotificationsTable()) {
+            return [
+                'updated' => 0,
+                'unreadCount' => 0,
+            ];
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $builder = $this->notificationModel->where('portal_user_id', $portalUserId)->where('is_read', 0);
+        $pending = $builder->findAll();
+        $count = count($pending);
+
+        if ($count > 0) {
+            $this->notificationModel
+                ->where('portal_user_id', $portalUserId)
+                ->where('is_read', 0)
+                ->set([
+                    'is_read' => 1,
+                    'read_at' => $now,
+                    'updated_at' => $now,
+                ])
+                ->update();
+        }
+
+        return [
+            'updated' => $count,
+            'unreadCount' => $this->notificationModel->unreadCount($portalUserId),
+        ];
+    }
+
     public function fetchNewsByIds(array $newsIds): array
     {
         $newsIds = array_values(array_unique(array_filter(array_map('strval', $newsIds))));
@@ -429,6 +586,29 @@ class PortalUserService
             'authorId' => $news['author_id'] ?? null,
             'categoryId' => $category['category_id'] ?? null,
             'tagId' => $tag['tag_id'] ?? null,
+        ];
+    }
+
+    private function formatNotificationRow(array $row): array
+    {
+        $metadata = null;
+        if (!empty($row['metadata_json'])) {
+            $decoded = json_decode((string) $row['metadata_json'], true);
+            $metadata = is_array($decoded) ? $decoded : null;
+        }
+
+        return [
+            'id' => (string) ($row['id'] ?? ''),
+            'eventKey' => (string) ($row['event_key'] ?? ''),
+            'type' => (string) ($row['type'] ?? 'general'),
+            'title' => (string) ($row['title'] ?? ''),
+            'body' => (string) ($row['body'] ?? ''),
+            'url' => $row['url'] ?? null,
+            'metadata' => $metadata,
+            'isRead' => !empty($row['is_read']),
+            'readAt' => $row['read_at'] ?? null,
+            'createdAt' => $row['created_at'] ?? null,
+            'updatedAt' => $row['updated_at'] ?? null,
         ];
     }
 
@@ -547,5 +727,14 @@ class PortalUserService
         $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
 
         return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+    }
+
+    private function hasNotificationsTable(): bool
+    {
+        try {
+            return db_connect()->tableExists('portal_user_notifications');
+        } catch (\Throwable) {
+            return false;
+        }
     }
 }

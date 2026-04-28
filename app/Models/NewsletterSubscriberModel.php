@@ -16,7 +16,8 @@ class NewsletterSubscriberModel extends Model
 
     protected $allowedFields = [
         'id', 'email', 'name', 'status', 'confirmation_token',
-        'confirmed_at', 'created_at', 'updated_at',
+        'confirmed_at', 'source', 'metadata', 'unsubscribe_token_hash',
+        'unsubscribe_token_expires_at', 'created_at', 'updated_at',
     ];
 
     /**
@@ -25,6 +26,13 @@ class NewsletterSubscriberModel extends Model
     public function findByEmail(string $email): ?NewsletterSubscriber
     {
         return $this->where('email', $email)->first();
+    }
+
+    public function findByUnsubscribeTokenHash(string $hash): ?NewsletterSubscriber
+    {
+        return $this->where('unsubscribe_token_hash', $hash)
+            ->where('unsubscribe_token_expires_at >', date('Y-m-d H:i:s'))
+            ->first();
     }
 
     /**
