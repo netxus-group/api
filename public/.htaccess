@@ -1,5 +1,6 @@
-# Disable directory browsing
-Options All -Indexes
+# Directory listing should be disabled at vhost/server level.
+# Avoid using `Options` here because many shared hostings reject it in `.htaccess`
+# and return HTTP 500 before PHP/CodeIgniter can run.
 
 # Prevent direct access to files/folders beginning with a period
 <IfModule mod_rewrite.c>
