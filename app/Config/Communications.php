@@ -66,8 +66,11 @@ class Communications extends BaseConfig
         $this->pushProvider = (string) env('PUSH_PROVIDER', $this->pushProvider);
         $this->pushApiKey = (string) env('PUSH_API_KEY', $this->pushApiKey);
         $this->pushAppId = (string) env('PUSH_APP_ID', $this->pushAppId);
-        $this->dashboardUrl = rtrim((string) env('DASHBOARD_SITE_URL', 'http://localhost:3000'), '/');
-        $this->portalUrl = rtrim((string) env('PUBLIC_SITE_URL', $this->portalUrl), '/');
+        $defaultDashboardUrl = ENVIRONMENT === 'production' ? 'https://admin.netxus.com.ar' : 'http://localhost:3000';
+        $defaultPortalUrl = ENVIRONMENT === 'production' ? 'https://netxus.com.ar' : 'http://localhost:5173';
+
+        $this->dashboardUrl = rtrim((string) env('DASHBOARD_SITE_URL', $defaultDashboardUrl), '/');
+        $this->portalUrl = rtrim((string) env('PUBLIC_SITE_URL', $defaultPortalUrl), '/');
         $this->siteName = (string) env('SITE_NAME', $this->siteName);
         $this->testEmail = (string) env('MAIL_TEST_EMAIL', $this->testEmail);
     }

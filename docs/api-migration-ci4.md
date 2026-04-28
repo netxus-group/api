@@ -71,7 +71,7 @@ CORS_ALLOWED_ORIGINS = http://localhost:3000,http://localhost:3001,http://localh
 Example (staging/prod):
 
 ```ini
-CORS_ALLOWED_ORIGINS = https://staging-admin.netxus.com,https://staging-portal.netxus.com,https://admin.netxus.com,https://portal.netxus.com
+CORS_ALLOWED_ORIGINS = https://staging-admin.netxus.com.ar,https://staging-netxus.com.ar,https://admin.netxus.com.ar,https://netxus.com.ar,https://api.netxus.com.ar
 ```
 
 ### 2) Keep CORS filter globally enabled

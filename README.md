@@ -279,7 +279,7 @@ Crear la base de datos desde el panel del hosting (cPanel/Plesk) y configurar el
 
 Actualizar `CORS_ALLOWED_ORIGINS` en `.env` con los dominios de producción:
 ```ini
-CORS_ALLOWED_ORIGINS = https://portal.netxus.com,https://admin.netxus.com
+CORS_ALLOWED_ORIGINS = https://netxus.com.ar,https://api.netxus.com.ar,https://admin.netxus.com.ar
 ```
 
 ## Usuarios de prueba

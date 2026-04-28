@@ -27,7 +27,11 @@ class Cors extends BaseConfig
     {
         parent::__construct();
 
-        $origins = env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:5173,http://localhost:5174');
+        $defaultOrigins = ENVIRONMENT === 'production'
+            ? 'https://netxus.com.ar,https://api.netxus.com.ar,https://admin.netxus.com.ar'
+            : 'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:5173,http://localhost:5174';
+
+        $origins = env('CORS_ALLOWED_ORIGINS', $defaultOrigins);
         $parsedOrigins = array_map(
             static fn(string $origin): string => self::normalizeOrigin($origin),
             explode(',', $origins)
@@ -39,13 +43,7 @@ class Cors extends BaseConfig
 
         $this->allowedOrigins = $parsedOrigins !== []
             ? array_values(array_unique($parsedOrigins))
-            : [
-                'http://localhost:3000',
-                'http://localhost:3001',
-                'http://localhost:3002',
-                'http://localhost:5173',
-                'http://localhost:5174',
-            ];
+            : array_map([self::class, 'normalizeOrigin'], explode(',', $defaultOrigins));
     }
 
     public static function normalizeOrigin(string $origin): string
