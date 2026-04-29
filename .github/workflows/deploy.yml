@@ -4,13 +4,7 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
-    inputs:
-      upload_env:
-        description: "Generar y subir .env desde DB_* secrets"
-        required: false
-        default: false
-        type: boolean
+  workflow_dispatch: {}
 
 concurrency:
   group: deploy-api
@@ -38,22 +32,33 @@ jobs:
             exit 1
           fi
 
-      - name: Validate required secrets
+      - name: Validate required variables
         shell: bash
         env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_PORT: ${{ secrets.FTP_PORT }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          FTP_SERVER: ${{ vars.FTP_SERVER }}
+          FTP_USERNAME: ${{ vars.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ vars.FTP_PASSWORD }}
+          FTP_PORT: ${{ vars.FTP_PORT }}
+          DB_HOST: ${{ vars.DB_HOST }}
+          DB_NAME: ${{ vars.DB_NAME }}
+          DB_USER: ${{ vars.DB_USER }}
+          DB_PASSWORD: ${{ vars.DB_PASSWORD }}
+          JWT_SECRET: ${{ vars.JWT_SECRET }}
+          JWT_REFRESH_SECRET: ${{ vars.JWT_REFRESH_SECRET }}
+          PORTAL_JWT_SECRET: ${{ vars.PORTAL_JWT_SECRET }}
+          PORTAL_JWT_REFRESH_SECRET: ${{ vars.PORTAL_JWT_REFRESH_SECRET }}
+          PUBLIC_API_SECRET: ${{ vars.PUBLIC_API_SECRET }}
+          NEWSLETTER_UNSUBSCRIBE_SECRET: ${{ vars.NEWSLETTER_UNSUBSCRIBE_SECRET }}
         run: |
           set -euo pipefail
-          for var in FTP_SERVER FTP_USERNAME FTP_PASSWORD FTP_PORT DB_HOST DB_NAME DB_USER DB_PASSWORD; do
+          for var in \
+            FTP_SERVER FTP_USERNAME FTP_PASSWORD FTP_PORT \
+            DB_HOST DB_NAME DB_USER DB_PASSWORD \
+            JWT_SECRET JWT_REFRESH_SECRET \
+            PORTAL_JWT_SECRET PORTAL_JWT_REFRESH_SECRET \
+            PUBLIC_API_SECRET NEWSLETTER_UNSUBSCRIBE_SECRET; do
             if [ -z "${!var:-}" ]; then
-              echo "::error::Missing required secret: $var"
+              echo "::error::Missing required repository variable: $var"
               exit 1
             fi
           done
@@ -62,7 +67,7 @@ jobs:
         id: remote-dir
         shell: bash
         env:
-          FTP_REMOTE_DIR: ${{ secrets.FTP_REMOTE_DIR }}
+          FTP_REMOTE_DIR: ${{ vars.FTP_REMOTE_DIR }}
         run: |
           set -euo pipefail
           REMOTE_DIR="${FTP_REMOTE_DIR:-/public_html/api/}"
@@ -118,18 +123,48 @@ jobs:
             exit 1
           fi
 
-      - name: Generate .env from DB secrets (optional)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.upload_env == true }}
+      - name: Generate .env from repository variables
         shell: bash
         env:
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
-          DASHBOARD_SITE_URL: ${{ secrets.DASHBOARD_SITE_URL }}
-          PUBLIC_SITE_URL: ${{ secrets.PUBLIC_SITE_URL }}
-          CORS_ALLOWED_ORIGINS: ${{ secrets.CORS_ALLOWED_ORIGINS }}
+          CI_ENVIRONMENT: ${{ vars.CI_ENVIRONMENT }}
+          APP_BASE_URL: ${{ vars.APP_BASE_URL }}
+          APP_TIMEZONE: ${{ vars.APP_TIMEZONE }}
+          DASHBOARD_SITE_URL: ${{ vars.DASHBOARD_SITE_URL }}
+          PUBLIC_SITE_URL: ${{ vars.PUBLIC_SITE_URL }}
+          CORS_ALLOWED_ORIGINS: ${{ vars.CORS_ALLOWED_ORIGINS }}
+          DB_HOST: ${{ vars.DB_HOST }}
+          DB_NAME: ${{ vars.DB_NAME }}
+          DB_USER: ${{ vars.DB_USER }}
+          DB_PASSWORD: ${{ vars.DB_PASSWORD }}
+          DB_PORT: ${{ vars.DB_PORT }}
+          JWT_SECRET: ${{ vars.JWT_SECRET }}
+          JWT_REFRESH_SECRET: ${{ vars.JWT_REFRESH_SECRET }}
+          JWT_ACCESS_EXPIRES: ${{ vars.JWT_ACCESS_EXPIRES }}
+          JWT_REFRESH_EXPIRES: ${{ vars.JWT_REFRESH_EXPIRES }}
+          PORTAL_JWT_SECRET: ${{ vars.PORTAL_JWT_SECRET }}
+          PORTAL_JWT_REFRESH_SECRET: ${{ vars.PORTAL_JWT_REFRESH_SECRET }}
+          PORTAL_JWT_ACCESS_EXPIRES: ${{ vars.PORTAL_JWT_ACCESS_EXPIRES }}
+          PORTAL_JWT_REFRESH_EXPIRES: ${{ vars.PORTAL_JWT_REFRESH_EXPIRES }}
+          PORTAL_PASSWORD_RESET_EXPIRES: ${{ vars.PORTAL_PASSWORD_RESET_EXPIRES }}
+          PORTAL_BCRYPT_COST: ${{ vars.PORTAL_BCRYPT_COST }}
+          PORTAL_MAX_LOGIN_ATTEMPTS: ${{ vars.PORTAL_MAX_LOGIN_ATTEMPTS }}
+          PORTAL_LOGIN_ATTEMPT_WINDOW: ${{ vars.PORTAL_LOGIN_ATTEMPT_WINDOW }}
+          PUBLIC_API_SECRET: ${{ vars.PUBLIC_API_SECRET }}
+          NEWSLETTER_UNSUBSCRIBE_SECRET: ${{ vars.NEWSLETTER_UNSUBSCRIBE_SECRET }}
+          UPLOADS_PATH: ${{ vars.UPLOADS_PATH }}
+          UPLOADS_PUBLIC_URL: ${{ vars.UPLOADS_PUBLIC_URL }}
+          UPLOADS_MAX_SIZE: ${{ vars.UPLOADS_MAX_SIZE }}
+          EMAIL_PROTOCOL: ${{ vars.EMAIL_PROTOCOL }}
+          EMAIL_SMTP_HOST: ${{ vars.EMAIL_SMTP_HOST }}
+          EMAIL_SMTP_USER: ${{ vars.EMAIL_SMTP_USER }}
+          EMAIL_SMTP_PASS: ${{ vars.EMAIL_SMTP_PASS }}
+          EMAIL_SMTP_PORT: ${{ vars.EMAIL_SMTP_PORT }}
+          EMAIL_SMTP_CRYPTO: ${{ vars.EMAIL_SMTP_CRYPTO }}
+          EMAIL_MAIL_TYPE: ${{ vars.EMAIL_MAIL_TYPE }}
+          WEATHER_API_URL: ${{ vars.WEATHER_API_URL }}
+          WEATHER_LATITUDE: ${{ vars.WEATHER_LATITUDE }}
+          WEATHER_LONGITUDE: ${{ vars.WEATHER_LONGITUDE }}
+          CURRENCY_API_URL: ${{ vars.CURRENCY_API_URL }}
         run: |
           set -euo pipefail
 
@@ -143,28 +178,79 @@ jobs:
             printf "%s" "$1" | sed "s/'/'\"'\"'/g"
           }
 
-          append_env() {
-            local key="$1"
-            local value
-            value="$(escape_env_value "$2")"
-            printf "%s = '%s'\n" "$key" "$value" >> .deploy/api/.env
+          escape_regex_key() {
+            printf "%s" "$1" | sed -E 's/[][(){}.^$*+?|\\/]/\\&/g'
           }
 
-          API_BASE_URL="${APP_BASE_URL:-https://api.netxus.com.ar/}"
-          DASHBOARD_URL="${DASHBOARD_SITE_URL:-https://admin.netxus.com.ar}"
-          PORTAL_URL="${PUBLIC_SITE_URL:-https://netxus.com.ar}"
-          CORS_ORIGINS="${CORS_ALLOWED_ORIGINS:-https://netxus.com.ar,https://api.netxus.com.ar,https://admin.netxus.com.ar}"
+          set_env() {
+            local key="$1"
+            local raw="$2"
+            local value key_regex line line_for_sed
+            value="$(escape_env_value "$raw")"
+            key_regex="$(escape_regex_key "$key")"
+            line="${key} = '${value}'"
+            line_for_sed="$(printf "%s" "$line" | sed -e 's/[&|\\]/\\&/g')"
 
-          printf "\n# Injected by GitHub Actions deploy workflow\n" >> .deploy/api/.env
-          append_env "CI_ENVIRONMENT" "production"
-          append_env "app.baseURL" "$API_BASE_URL"
-          append_env "DASHBOARD_SITE_URL" "$DASHBOARD_URL"
-          append_env "PUBLIC_SITE_URL" "$PORTAL_URL"
-          append_env "CORS_ALLOWED_ORIGINS" "$CORS_ORIGINS"
-          append_env "database.default.hostname" "$DB_HOST"
-          append_env "database.default.database" "$DB_NAME"
-          append_env "database.default.username" "$DB_USER"
-          append_env "database.default.password" "$DB_PASSWORD"
+            if grep -Eq "^[[:space:]]*${key_regex}[[:space:]]*=" .deploy/api/.env; then
+              sed -i -E "s|^[[:space:]]*${key_regex}[[:space:]]*=.*$|${line_for_sed}|" .deploy/api/.env
+            else
+              printf "%s\n" "$line" >> .deploy/api/.env
+            fi
+          }
+
+          set_env_if_present() {
+            local key="$1"
+            local value="$2"
+            if [ -n "$value" ]; then
+              set_env "$key" "$value"
+            fi
+          }
+
+          set_env "CI_ENVIRONMENT" "${CI_ENVIRONMENT:-production}"
+          set_env "app.baseURL" "${APP_BASE_URL:-https://api.netxus.com.ar/}"
+          set_env "app.appTimezone" "${APP_TIMEZONE:-America/Argentina/Buenos_Aires}"
+          set_env "DASHBOARD_SITE_URL" "${DASHBOARD_SITE_URL:-https://admin.netxus.com.ar}"
+          set_env "PUBLIC_SITE_URL" "${PUBLIC_SITE_URL:-https://netxus.com.ar}"
+          set_env "CORS_ALLOWED_ORIGINS" "${CORS_ALLOWED_ORIGINS:-https://netxus.com.ar,https://www.netxus.com.ar,https://api.netxus.com.ar,https://admin.netxus.com.ar}"
+
+          set_env "database.default.hostname" "$DB_HOST"
+          set_env "database.default.database" "$DB_NAME"
+          set_env "database.default.username" "$DB_USER"
+          set_env "database.default.password" "$DB_PASSWORD"
+          set_env "database.default.port" "${DB_PORT:-3306}"
+
+          set_env "JWT_SECRET" "$JWT_SECRET"
+          set_env "JWT_REFRESH_SECRET" "$JWT_REFRESH_SECRET"
+          set_env "JWT_ACCESS_EXPIRES" "${JWT_ACCESS_EXPIRES:-900}"
+          set_env "JWT_REFRESH_EXPIRES" "${JWT_REFRESH_EXPIRES:-604800}"
+
+          set_env "PORTAL_JWT_SECRET" "$PORTAL_JWT_SECRET"
+          set_env "PORTAL_JWT_REFRESH_SECRET" "$PORTAL_JWT_REFRESH_SECRET"
+          set_env "PORTAL_JWT_ACCESS_EXPIRES" "${PORTAL_JWT_ACCESS_EXPIRES:-900}"
+          set_env "PORTAL_JWT_REFRESH_EXPIRES" "${PORTAL_JWT_REFRESH_EXPIRES:-1209600}"
+          set_env "PORTAL_PASSWORD_RESET_EXPIRES" "${PORTAL_PASSWORD_RESET_EXPIRES:-3600}"
+          set_env "PORTAL_BCRYPT_COST" "${PORTAL_BCRYPT_COST:-10}"
+          set_env "PORTAL_MAX_LOGIN_ATTEMPTS" "${PORTAL_MAX_LOGIN_ATTEMPTS:-8}"
+          set_env "PORTAL_LOGIN_ATTEMPT_WINDOW" "${PORTAL_LOGIN_ATTEMPT_WINDOW:-300}"
+
+          set_env "PUBLIC_API_SECRET" "$PUBLIC_API_SECRET"
+          set_env "NEWSLETTER_UNSUBSCRIBE_SECRET" "$NEWSLETTER_UNSUBSCRIBE_SECRET"
+          set_env "UPLOADS_PATH" "${UPLOADS_PATH:-writable/uploads/}"
+          set_env "UPLOADS_PUBLIC_URL" "${UPLOADS_PUBLIC_URL:-/uploads/}"
+          set_env "UPLOADS_MAX_SIZE" "${UPLOADS_MAX_SIZE:-8192}"
+
+          set_env_if_present "email.protocol" "$EMAIL_PROTOCOL"
+          set_env_if_present "email.SMTPHost" "$EMAIL_SMTP_HOST"
+          set_env_if_present "email.SMTPUser" "$EMAIL_SMTP_USER"
+          set_env_if_present "email.SMTPPass" "$EMAIL_SMTP_PASS"
+          set_env_if_present "email.SMTPPort" "$EMAIL_SMTP_PORT"
+          set_env_if_present "email.SMTPCrypto" "$EMAIL_SMTP_CRYPTO"
+          set_env_if_present "email.mailType" "$EMAIL_MAIL_TYPE"
+
+          set_env "WEATHER_API_URL" "${WEATHER_API_URL:-https://api.open-meteo.com/v1/forecast}"
+          set_env "WEATHER_LATITUDE" "${WEATHER_LATITUDE:--34.6037}"
+          set_env "WEATHER_LONGITUDE" "${WEATHER_LONGITUDE:--58.3816}"
+          set_env "CURRENCY_API_URL" "${CURRENCY_API_URL:-https://open.er-api.com/v6/latest/USD}"
 
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
@@ -172,10 +258,10 @@ jobs:
       - name: Deploy files
         shell: bash
         env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_PORT: ${{ secrets.FTP_PORT }}
+          FTP_SERVER: ${{ vars.FTP_SERVER }}
+          FTP_USERNAME: ${{ vars.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ vars.FTP_PASSWORD }}
+          FTP_PORT: ${{ vars.FTP_PORT }}
           FTP_REMOTE_DIR: ${{ steps.remote-dir.outputs.remote_dir }}
         run: |
           set -euo pipefail

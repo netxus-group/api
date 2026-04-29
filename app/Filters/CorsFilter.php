@@ -16,11 +16,11 @@ class CorsFilter implements FilterInterface
     {
         $config = config(Cors::class);
         $origin = $request->getHeaderLine('Origin');
+        $this->setHeaders(service('response'), $config, $origin);
 
         if ($request->getMethod() === 'options') {
             $response = service('response');
             $response->setStatusCode(204);
-            $this->setHeaders($response, $config, $origin);
             return $response;
         }
 
