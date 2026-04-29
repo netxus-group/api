@@ -12,6 +12,19 @@ class SmtpEmailProvider implements EmailProviderInterface
 
     public function send(string $to, string $subject, string $html, string $text = '', array $metadata = []): array
     {
+        $fromAddress = trim((string) ($metadata['fromAddress'] ?? $this->config->mailFromAddress));
+        $fromName = trim((string) ($metadata['fromName'] ?? $this->config->mailFromName));
+        $replyTo = trim((string) ($metadata['replyTo'] ?? $this->config->mailReplyTo));
+
+        if ($fromAddress === '') {
+            return [
+                'status' => 'skipped',
+                'provider' => 'smtp',
+                'message' => 'SMTP sender address is not configured',
+                'externalId' => null,
+            ];
+        }
+
         $email = service('email');
         $email->clear(true);
 
@@ -30,9 +43,9 @@ class SmtpEmailProvider implements EmailProviderInterface
             'validate' => false,
         ]);
 
-        $email->setFrom($this->config->mailFromAddress, $this->config->mailFromName);
-        if ($this->config->mailReplyTo !== '') {
-            $email->setReplyTo($this->config->mailReplyTo);
+        $email->setFrom($fromAddress, $fromName);
+        if ($replyTo !== '') {
+            $email->setReplyTo($replyTo);
         }
         $email->setTo($to);
         $email->setSubject($subject);

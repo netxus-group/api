@@ -74,6 +74,7 @@ class NewsletterController extends BaseApiController
             'site_url' => $communication->getConfig(false)['meta']['portalUrl'] ?? rtrim((string) config('App')->baseURL, '/'),
         ], [
             'templateKey' => 'newsletter_subscription',
+            'senderProfile' => 'newsletter',
             'recipient_user_id' => null,
             'dedupeKey' => 'newsletter-subscription:' . $id,
         ]);

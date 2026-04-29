@@ -161,6 +161,27 @@ jobs:
           EMAIL_SMTP_PORT: ${{ vars.EMAIL_SMTP_PORT }}
           EMAIL_SMTP_CRYPTO: ${{ vars.EMAIL_SMTP_CRYPTO }}
           EMAIL_MAIL_TYPE: ${{ vars.EMAIL_MAIL_TYPE }}
+          MAIL_PROVIDER: ${{ vars.MAIL_PROVIDER }}
+          MAIL_SEND_ENABLED: ${{ vars.MAIL_SEND_ENABLED }}
+          MAIL_TEST_MODE: ${{ vars.MAIL_TEST_MODE }}
+          MAIL_TEST_EMAIL: ${{ vars.MAIL_TEST_EMAIL }}
+          MAIL_FROM_ADDRESS: ${{ vars.MAIL_FROM_ADDRESS }}
+          MAIL_FROM_NAME: ${{ vars.MAIL_FROM_NAME }}
+          MAIL_REPLY_TO: ${{ vars.MAIL_REPLY_TO }}
+          MAIL_WELCOME_FROM_ADDRESS: ${{ vars.MAIL_WELCOME_FROM_ADDRESS }}
+          MAIL_WELCOME_FROM_NAME: ${{ vars.MAIL_WELCOME_FROM_NAME }}
+          MAIL_WELCOME_REPLY_TO: ${{ vars.MAIL_WELCOME_REPLY_TO }}
+          MAIL_NEWSLETTER_FROM_ADDRESS: ${{ vars.MAIL_NEWSLETTER_FROM_ADDRESS }}
+          MAIL_NEWSLETTER_FROM_NAME: ${{ vars.MAIL_NEWSLETTER_FROM_NAME }}
+          MAIL_NEWSLETTER_REPLY_TO: ${{ vars.MAIL_NEWSLETTER_REPLY_TO }}
+          SMTP_HOST: ${{ vars.SMTP_HOST }}
+          SMTP_USER: ${{ vars.SMTP_USER }}
+          SMTP_PASS: ${{ vars.SMTP_PASS }}
+          SMTP_PORT: ${{ vars.SMTP_PORT }}
+          SMTP_ENCRYPTION: ${{ vars.SMTP_ENCRYPTION }}
+          ENVIALO_SIMPLE_API_KEY: ${{ vars.ENVIALO_SIMPLE_API_KEY }}
+          ENVIALO_SIMPLE_API_URL: ${{ vars.ENVIALO_SIMPLE_API_URL }}
+          ENVIALO_SIMPLE_ACCOUNT_ID: ${{ vars.ENVIALO_SIMPLE_ACCOUNT_ID }}
           WEATHER_API_URL: ${{ vars.WEATHER_API_URL }}
           WEATHER_LATITUDE: ${{ vars.WEATHER_LATITUDE }}
           WEATHER_LONGITUDE: ${{ vars.WEATHER_LONGITUDE }}
@@ -246,6 +267,29 @@ jobs:
           set_env_if_present "email.SMTPPort" "$EMAIL_SMTP_PORT"
           set_env_if_present "email.SMTPCrypto" "$EMAIL_SMTP_CRYPTO"
           set_env_if_present "email.mailType" "$EMAIL_MAIL_TYPE"
+
+          # New communications settings (preferred keys in current codebase)
+          set_env_if_present "MAIL_PROVIDER" "$MAIL_PROVIDER"
+          set_env_if_present "MAIL_SEND_ENABLED" "$MAIL_SEND_ENABLED"
+          set_env_if_present "MAIL_TEST_MODE" "$MAIL_TEST_MODE"
+          set_env_if_present "MAIL_TEST_EMAIL" "$MAIL_TEST_EMAIL"
+          set_env_if_present "MAIL_FROM_ADDRESS" "$MAIL_FROM_ADDRESS"
+          set_env_if_present "MAIL_FROM_NAME" "$MAIL_FROM_NAME"
+          set_env_if_present "MAIL_REPLY_TO" "$MAIL_REPLY_TO"
+          set_env_if_present "MAIL_WELCOME_FROM_ADDRESS" "$MAIL_WELCOME_FROM_ADDRESS"
+          set_env_if_present "MAIL_WELCOME_FROM_NAME" "$MAIL_WELCOME_FROM_NAME"
+          set_env_if_present "MAIL_WELCOME_REPLY_TO" "$MAIL_WELCOME_REPLY_TO"
+          set_env_if_present "MAIL_NEWSLETTER_FROM_ADDRESS" "$MAIL_NEWSLETTER_FROM_ADDRESS"
+          set_env_if_present "MAIL_NEWSLETTER_FROM_NAME" "$MAIL_NEWSLETTER_FROM_NAME"
+          set_env_if_present "MAIL_NEWSLETTER_REPLY_TO" "$MAIL_NEWSLETTER_REPLY_TO"
+          set_env_if_present "SMTP_HOST" "$SMTP_HOST"
+          set_env_if_present "SMTP_USER" "$SMTP_USER"
+          set_env_if_present "SMTP_PASS" "$SMTP_PASS"
+          set_env_if_present "SMTP_PORT" "$SMTP_PORT"
+          set_env_if_present "SMTP_ENCRYPTION" "$SMTP_ENCRYPTION"
+          set_env_if_present "ENVIALO_SIMPLE_API_KEY" "$ENVIALO_SIMPLE_API_KEY"
+          set_env_if_present "ENVIALO_SIMPLE_API_URL" "$ENVIALO_SIMPLE_API_URL"
+          set_env_if_present "ENVIALO_SIMPLE_ACCOUNT_ID" "$ENVIALO_SIMPLE_ACCOUNT_ID"
 
           set_env "WEATHER_API_URL" "${WEATHER_API_URL:-https://api.open-meteo.com/v1/forecast}"
           set_env "WEATHER_LATITUDE" "${WEATHER_LATITUDE:--34.6037}"

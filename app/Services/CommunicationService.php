@@ -218,6 +218,20 @@ class CommunicationService
 
         $templateKey = isset($metadata['templateKey']) ? (string) $metadata['templateKey'] : null;
         $recipientUserId = isset($metadata['recipient_user_id']) ? (string) $metadata['recipient_user_id'] : null;
+        $sender = $this->resolveSender($settings, $metadata);
+
+        if ($sender['fromAddress'] !== '') {
+            $metadata['fromAddress'] = $sender['fromAddress'];
+        }
+        if ($sender['fromName'] !== '') {
+            $metadata['fromName'] = $sender['fromName'];
+        }
+        if ($sender['replyTo'] !== '') {
+            $metadata['replyTo'] = $sender['replyTo'];
+        }
+        if (!isset($metadata['context']) || !is_array($metadata['context'])) {
+            $metadata['context'] = [];
+        }
 
         $logId = $this->createEmailLog($provider, $templateKey, $recipient, $recipientUserId, $subject, $metadata);
 
@@ -444,6 +458,7 @@ class CommunicationService
                 'portal_url' => $this->config->portalUrl,
             ], [
                 'templateKey' => 'newsletter_news_digest',
+                'senderProfile' => 'newsletter',
                 'campaignId' => $campaignId,
                 'recipient_user_id' => null,
                 'dedupeKey' => "newsletter-test:{$campaignId}:{$testEmail}",
@@ -473,6 +488,7 @@ class CommunicationService
                 ],
                 [
                     'templateKey' => 'newsletter_news_digest',
+                    'senderProfile' => 'newsletter',
                     'campaignId' => $campaignId,
                     'subscriberId' => $subscriber->id,
                     'recipient_user_id' => null,
@@ -912,6 +928,72 @@ class CommunicationService
             $normalized[(string) $key] = $value;
         }
         return $normalized;
+    }
+
+    private function resolveSender(array $settings, array $metadata): array
+    {
+        $defaultFromAddress = trim((string) ($settings['email']['fromAddress'] ?? $this->config->mailFromAddress));
+        $defaultFromName = trim((string) ($settings['email']['fromName'] ?? $this->config->mailFromName));
+        $defaultReplyTo = trim((string) ($settings['email']['replyTo'] ?? $this->config->mailReplyTo));
+
+        $profile = strtolower(trim((string) ($metadata['senderProfile'] ?? '')));
+        if ($profile === '') {
+            $profile = $this->inferSenderProfile($metadata['templateKey'] ?? null);
+        }
+
+        $fromAddress = $defaultFromAddress;
+        $fromName = $defaultFromName;
+        $replyTo = $defaultReplyTo;
+
+        if ($profile === 'welcome') {
+            $fromAddress = trim($this->config->mailWelcomeFromAddress) !== '' ? trim($this->config->mailWelcomeFromAddress) : $fromAddress;
+            $fromName = trim($this->config->mailWelcomeFromName) !== '' ? trim($this->config->mailWelcomeFromName) : $fromName;
+            $replyTo = trim($this->config->mailWelcomeReplyTo) !== '' ? trim($this->config->mailWelcomeReplyTo) : $replyTo;
+        }
+
+        if ($profile === 'newsletter') {
+            $fromAddress = trim($this->config->mailNewsletterFromAddress) !== '' ? trim($this->config->mailNewsletterFromAddress) : $fromAddress;
+            $fromName = trim($this->config->mailNewsletterFromName) !== '' ? trim($this->config->mailNewsletterFromName) : $fromName;
+            $replyTo = trim($this->config->mailNewsletterReplyTo) !== '' ? trim($this->config->mailNewsletterReplyTo) : $replyTo;
+        }
+
+        $metadataFromAddress = trim((string) ($metadata['fromAddress'] ?? ''));
+        $metadataFromName = trim((string) ($metadata['fromName'] ?? ''));
+        $metadataReplyTo = trim((string) ($metadata['replyTo'] ?? ''));
+
+        if ($metadataFromAddress !== '') {
+            $fromAddress = $metadataFromAddress;
+        }
+        if ($metadataFromName !== '') {
+            $fromName = $metadataFromName;
+        }
+        if ($metadataReplyTo !== '') {
+            $replyTo = $metadataReplyTo;
+        }
+
+        return [
+            'fromAddress' => $fromAddress,
+            'fromName' => $fromName,
+            'replyTo' => $replyTo,
+        ];
+    }
+
+    private function inferSenderProfile(mixed $templateKey): string
+    {
+        $key = strtolower(trim((string) $templateKey));
+        if ($key === '') {
+            return 'default';
+        }
+
+        if ($key === 'welcome_user') {
+            return 'welcome';
+        }
+
+        if (str_starts_with($key, 'newsletter_')) {
+            return 'newsletter';
+        }
+
+        return 'default';
     }
 
     private function baseTemplateVariables(): array

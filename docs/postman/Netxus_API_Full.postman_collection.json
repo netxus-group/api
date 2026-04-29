@@ -109,6 +109,11 @@
                          "key":  "publicApiToken",
                          "value":  "",
                          "type":  "string"
+                     },
+                     {
+                         "key":  "templateKey",
+                         "value":  "generic_notification",
+                         "type":  "string"
                      }
                  ],
     "item":  [
@@ -750,7 +755,7 @@
                                                                          "type":  "text"
                                                                      }
                                                                  ],
-                                                      "url":  "q=economia"
+                                                      "url":  "{{baseApiV1}}/public/search?q=economia"
                                                   }
                                   },
                                   {
@@ -830,7 +835,7 @@
                                                                          "type":  "text"
                                                                      }
                                                                  ],
-                                                      "url":  "token=TOKEN_AQUI"
+                                                      "url":  "{{baseApiV1}}/public/newsletter/unsubscribe/TOKEN_AQUI"
                                                   }
                                   },
                                   {
@@ -852,7 +857,11 @@
                                       "request":  {
                                                       "method":  "GET",
                                                       "header":  [
-
+                                                                     {
+                                                                         "key":  "x-public-api-token",
+                                                                         "value":  "{{publicApiToken}}",
+                                                                         "type":  "text"
+                                                                     }
                                                                  ],
                                                       "url":  "{{baseApiV1}}/public/integrations/weather"
                                                   }
@@ -862,7 +871,11 @@
                                       "request":  {
                                                       "method":  "GET",
                                                       "header":  [
-
+                                                                     {
+                                                                         "key":  "x-public-api-token",
+                                                                         "value":  "{{publicApiToken}}",
+                                                                         "type":  "text"
+                                                                     }
                                                                  ],
                                                       "url":  "{{baseApiV1}}/public/integrations/dollar"
                                                   }
@@ -872,7 +885,11 @@
                                       "request":  {
                                                       "method":  "GET",
                                                       "header":  [
-
+                                                                     {
+                                                                         "key":  "x-public-api-token",
+                                                                         "value":  "{{publicApiToken}}",
+                                                                         "type":  "text"
+                                                                     }
                                                                  ],
                                                       "url":  "{{baseApiV1}}/public/integrations/crypto"
                                                   }
@@ -2455,6 +2472,273 @@
 
                                                                  ],
                                                       "url":  "{{baseApiV1}}/reports/metrics/csv",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Communications",
+                     "item":  [
+                                  {
+                                      "name":  "GET /api/v1/communications/config",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/communications/config",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "PUT /api/v1/communications/config",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/communications/config",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": {\n    \"provider\": \"envialo_simple\",\n    \"sendEnabled\": true,\n    \"testMode\": false,\n    \"fromAddress\": \"no-reply@netxus.com.ar\",\n    \"fromName\": \"Netxus\",\n    \"replyTo\": \"respuestas@netxus.com.ar\",\n    \"envialoSimple\": {\n      \"apiKey\": \"\"\n    }\n  }\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/communications/templates",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/communications/templates",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "PUT /api/v1/communications/templates/{key}",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/communications/templates/{{templateKey}}",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"name\": \"Notificacion generica\",\n  \"subject\": \"{{site_name}}\",\n  \"html_body\": \"<p>{{message}}</p>\",\n  \"text_body\": \"{{message}}\",\n  \"variables\": [\"message\"],\n  \"is_active\": true\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/communications/templates/{key}/test",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/communications/templates/{{templateKey}}/test",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"to\": \"test@netxus.com.ar\",\n  \"variables\": {\n    \"message\": \"Prueba de template\"\n  }\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/communications/test-email",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/communications/test-email",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"to\": \"test@netxus.com.ar\",\n  \"subject\": \"Test email Netxus\",\n  \"html\": \"<h1>Prueba</h1><p>Envio de prueba</p>\",\n  \"text\": \"Prueba envio\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/communications/logs",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/communications/logs",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/communications/newsletter/campaigns",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/communications/newsletter/campaigns",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/communications/newsletter/send-test",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/communications/newsletter/send-test",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"to\": \"test@netxus.com.ar\",\n  \"title\": \"Newsletter Test\",\n  \"subject\": \"Resumen de noticias\",\n  \"templateKey\": \"newsletter_news_digest\",\n  \"newsIds\": []\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/communications/newsletter/send",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/communications/newsletter/send",
+                                                      "auth":  {
+                                                                   "type":  "bearer",
+                                                                   "bearer":  [
+                                                                                  {
+                                                                                      "key":  "token",
+                                                                                      "value":  "{{accessToken}}",
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ]
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"title\": \"Newsletter Semana\",\n  \"subject\": \"Noticias destacadas\",\n  \"templateKey\": \"newsletter_news_digest\",\n  \"newsIds\": [],\n  \"audience\": \"active_subscribers\"\n}"
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/communications/surveys/reminders/run",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseApiV1}}/communications/surveys/reminders/run?days=3&maxReminders=1",
                                                       "auth":  {
                                                                    "type":  "bearer",
                                                                    "bearer":  [

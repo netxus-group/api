@@ -85,6 +85,7 @@ class PortalAuthService
             'site_url' => config('Communications')->portalUrl,
         ], [
             'templateKey' => 'welcome_user',
+            'senderProfile' => 'welcome',
             'recipient_user_id' => $portalUserId,
             'dedupeKey' => 'portal-welcome:' . $portalUserId,
         ]);
