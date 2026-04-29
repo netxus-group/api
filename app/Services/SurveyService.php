@@ -1708,6 +1708,10 @@ class SurveyService
     {
         $normalized = trim((string) $anonymousKey);
         if ($normalized !== '') {
+            // Keep already-normalized SHA-1 keys stable across requests.
+            if (preg_match('/^[a-f0-9]{40}$/i', $normalized) === 1) {
+                return strtolower($normalized);
+            }
             return sha1($normalized);
         }
         return sha1(($ipAddress ?: 'unknown') . '|' . ($userAgent ?: 'unknown'));

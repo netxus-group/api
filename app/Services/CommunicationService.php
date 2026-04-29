@@ -412,8 +412,14 @@ class CommunicationService
 
     public function sendNewsletterCampaign(array $payload, bool $testOnly = false, string $testEmail = ''): array
     {
-        $newsIds = array_values(array_unique(array_map('strval', (array) ($payload['newsIds'] ?? []))));
-        $newsItems = $this->newsModel->whereIn('id', $newsIds)->where('deleted_at', null)->findAll();
+        $newsIds = array_values(array_filter(
+            array_unique(array_map(static fn (mixed $id): string => trim((string) $id), (array) ($payload['newsIds'] ?? []))),
+            static fn (string $id): bool => $id !== ''
+        ));
+        $newsItems = [];
+        if ($newsIds !== []) {
+            $newsItems = $this->newsModel->whereIn('id', $newsIds)->where('deleted_at', null)->findAll();
+        }
         $newsById = [];
         foreach ($newsItems as $news) {
             $newsById[$news->id] = $news->toArray();
@@ -451,7 +457,7 @@ class CommunicationService
                 ];
             }
 
-            $this->sendTemplateEmail($testEmail, 'newsletter_news_digest', [
+            $testResult = $this->sendTemplateEmail($testEmail, 'newsletter_news_digest', [
                 'newsletter_title' => (string) ($payload['title'] ?? 'Newsletter'),
                 'news_list' => $this->buildNewsListHtml($orderedItems),
                 'unsubscribe_url' => rtrim($this->config->portalUrl, '/') . '/newsletter/unsubscribe',
@@ -464,9 +470,18 @@ class CommunicationService
                 'dedupeKey' => "newsletter-test:{$campaignId}:{$testEmail}",
             ]);
 
+            $summary = ['total' => 1, 'sent' => 0, 'failed' => 0, 'skipped' => 0];
+            if (($testResult['status'] ?? '') === 'sent') {
+                $summary['sent'] = 1;
+            } elseif (($testResult['status'] ?? '') === 'failed') {
+                $summary['failed'] = 1;
+            } else {
+                $summary['skipped'] = 1;
+            }
+
             return [
                 'campaign' => $this->getCampaign($campaignId),
-                'summary' => ['total' => 1, 'sent' => 1, 'failed' => 0, 'skipped' => 0],
+                'summary' => $summary,
                 'previewHtml' => $previewHtml,
             ];
         }

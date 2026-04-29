@@ -28,7 +28,4 @@ class NewsletterCampaignModel extends Model
         'updated_at',
     ];
 
-    protected array $casts = [
-        'preview_html' => '?string',
-    ];
 }

@@ -14,6 +14,48 @@ class NewsCorrientesSeeder extends Seeder
     public function run()
     {
         $now = date('Y-m-d H:i:s');
+        $this->db->transStart();
+
+        $seedAuthorIds = [
+            'a1000000-0000-0000-0000-000000000001',
+            'a1000000-0000-0000-0000-000000000002',
+            'a1000000-0000-0000-0000-000000000003',
+            'a1000000-0000-0000-0000-000000000004',
+            'a1000000-0000-0000-0000-000000000005',
+            'a1000000-0000-0000-0000-000000000006',
+            'a1000000-0000-0000-0000-000000000007',
+        ];
+        $seedCategoryIds = [
+            'c1000000-0000-0000-0000-000000000001',
+            'c1000000-0000-0000-0000-000000000002',
+            'c1000000-0000-0000-0000-000000000003',
+            'c1000000-0000-0000-0000-000000000004',
+            'c1000000-0000-0000-0000-000000000005',
+        ];
+        $seedTagIds = [
+            't1000000-0000-0000-0000-000000000001',
+            't1000000-0000-0000-0000-000000000002',
+            't1000000-0000-0000-0000-000000000003',
+            't1000000-0000-0000-0000-000000000004',
+            't1000000-0000-0000-0000-000000000005',
+            't1000000-0000-0000-0000-000000000006',
+            't1000000-0000-0000-0000-000000000007',
+            't1000000-0000-0000-0000-000000000008',
+            't1000000-0000-0000-0000-000000000009',
+            't1000000-0000-0000-0000-000000000010',
+            't1000000-0000-0000-0000-000000000011',
+            't1000000-0000-0000-0000-000000000012',
+            't1000000-0000-0000-0000-000000000013',
+            't1000000-0000-0000-0000-000000000014',
+            't1000000-0000-0000-0000-000000000015',
+            't1000000-0000-0000-0000-000000000016',
+            't1000000-0000-0000-0000-000000000017',
+            't1000000-0000-0000-0000-000000000018',
+            't1000000-0000-0000-0000-000000000019',
+            't1000000-0000-0000-0000-000000000020',
+        ];
+
+        $this->cleanupPreviousRun($seedAuthorIds, $seedCategoryIds, $seedTagIds);
 
         // ---- Authors (7 authors, some specialized in politics) ----
         $authors = [
@@ -26,6 +68,7 @@ class NewsCorrientesSeeder extends Seeder
             ['id' => 'a1000000-0000-0000-0000-000000000007', 'name' => 'Laura Beatriz Torres', 'slug' => 'laura-beatriz-torres', 'bio' => 'Periodista especializada en educación y cultura.', 'email' => 'ltorres@corrientesnoticias.com'],
         ];
         foreach ($authors as $a) {
+            $a = $this->normalizeArray($a);
             $a['active'] = 1;
             $a['created_at'] = $now;
             $a['updated_at'] = $now;
@@ -41,6 +84,7 @@ class NewsCorrientesSeeder extends Seeder
             ['c1000000-0000-0000-0000-000000000005', 'Internacional', 'internacional', '#718096', 5],
         ];
         foreach ($categories as [$id, $name, $slug, $color, $order]) {
+            $name = $this->normalizeMojibake($name);
             $this->db->table('categories')->insert([
                 'id' => $id, 'name' => $name, 'slug' => $slug,
                 'color' => $color, 'sort_order' => $order, 'active' => 1,
@@ -72,6 +116,7 @@ class NewsCorrientesSeeder extends Seeder
             ['t1000000-0000-0000-0000-000000000020', 'Derechos Humanos', 'derechos-humanos'],
         ];
         foreach ($tags as [$id, $name, $slug]) {
+            $name = $this->normalizeMojibake($name);
             $this->db->table('tags')->insert([
                 'id' => $id, 'name' => $name, 'slug' => $slug,
                 'active' => 1, 'created_at' => $now, 'updated_at' => $now,
@@ -136,7 +181,7 @@ class NewsCorrientesSeeder extends Seeder
                 'width' => 1000,
                 'height' => 600,
                 'url' => $imageUrls[$urlIndex],
-                'alt_text' => $altTexts[$urlIndex],
+                'alt_text' => $this->normalizeMojibake($altTexts[$urlIndex]),
                 'caption' => 'Imagen relacionada con la noticia',
                 'folder' => 'news',
                 'uploaded_by' => '10000000-0000-0000-0000-000000000001', // admin
@@ -145,7 +190,7 @@ class NewsCorrientesSeeder extends Seeder
                 'updated_at' => $now,
             ];
         }
-        $this->db->table('media_images')->insertBatch($mediaImages);
+        $this->db->table('media_images')->insertBatch($this->normalizeRows($mediaImages));
 
         // ---- Generate 200 News Articles ----
         $newsData = [];
@@ -413,7 +458,7 @@ class NewsCorrientesSeeder extends Seeder
             else $cat = 'internacional';
 
             $titles = $allTitles[$cat];
-            $title = $titles[array_rand($titles)];
+            $title = $this->normalizeMojibake($titles[array_rand($titles)]);
             $slug = url_title($title, '-', true) . '-' . ($i + 1);
 
             // Excerpt
@@ -490,9 +535,93 @@ class NewsCorrientesSeeder extends Seeder
         }
 
         // Insert in batches
-        $this->db->table('news')->insertBatch($newsData);
+        $this->db->table('news')->insertBatch($this->normalizeRows($newsData));
         $this->db->table('news_categories')->insertBatch($newsCategories);
         $this->db->table('news_tags')->insertBatch($newsTags);
+
+        $this->db->transComplete();
+        if ($this->db->transStatus() === false) {
+            throw new \RuntimeException('NewsCorrientesSeeder failed while refreshing data.');
+        }
+    }
+
+    private function cleanupPreviousRun(array $authorIds, array $categoryIds, array $tagIds): void
+    {
+        $newsIds = [];
+
+        if ($categoryIds !== []) {
+            $rows = $this->db->table('news_categories')
+                ->select('news_id')
+                ->distinct()
+                ->whereIn('category_id', $categoryIds)
+                ->get()
+                ->getResultArray();
+
+            $newsIds = array_values(array_filter(array_map(static function (array $row): ?string {
+                return $row['news_id'] ?? null;
+            }, $rows)));
+        }
+
+        if ($newsIds !== []) {
+            $this->db->table('news')->whereIn('id', $newsIds)->delete();
+        }
+
+        $this->db->table('media_images')
+            ->like('filename', 'news_cover_', 'after')
+            ->where('folder', 'news')
+            ->where('uploaded_by', '10000000-0000-0000-0000-000000000001')
+            ->delete();
+
+        if ($authorIds !== []) {
+            $this->db->table('authors')->whereIn('id', $authorIds)->delete();
+        }
+        if ($categoryIds !== []) {
+            $this->db->table('categories')->whereIn('id', $categoryIds)->delete();
+        }
+        if ($tagIds !== []) {
+            $this->db->table('tags')->whereIn('id', $tagIds)->delete();
+        }
+    }
+
+    private function normalizeRows(array $rows): array
+    {
+        foreach ($rows as $index => $row) {
+            if (is_array($row)) {
+                $rows[$index] = $this->normalizeArray($row);
+            }
+        }
+
+        return $rows;
+    }
+
+    private function normalizeArray(array $row): array
+    {
+        foreach ($row as $key => $value) {
+            if (is_string($value)) {
+                $row[$key] = $this->normalizeMojibake($value);
+                continue;
+            }
+
+            if (is_array($value)) {
+                $row[$key] = $this->normalizeArray($value);
+            }
+        }
+
+        return $row;
+    }
+
+    private function normalizeMojibake(string $text): string
+    {
+        if (!preg_match('/(?:Ã.|Â|â€|â€™|â€œ|â€)/u', $text)) {
+            return $text;
+        }
+
+        $converted = @iconv('Windows-1252', 'UTF-8//IGNORE', $text);
+        if ($converted === false || $converted === '') {
+            return $text;
+        }
+
+        return $converted;
     }
 
     private function weightedRandom($weights) {
