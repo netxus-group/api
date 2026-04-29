@@ -26,6 +26,7 @@ class PortalAuthService
         $this->passwordResetModel = new PortalUserPasswordResetModel();
         $this->jwt = service('portalJwtManager');
         $this->config = config('PortalAuth');
+        $this->assertJwtConfig();
     }
 
     public function register(array $data, string $ipAddress = '', string $userAgent = ''): array
@@ -372,5 +373,18 @@ class PortalAuthService
         $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
 
         return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+    }
+
+    private function assertJwtConfig(): void
+    {
+        $accessSecret = trim((string) $this->config->jwtSecret);
+        $refreshSecret = trim((string) $this->config->jwtRefreshSecret);
+
+        if ($accessSecret === '' || $refreshSecret === '') {
+            throw new \RuntimeException(
+                'Portal JWT configuration is missing. Define PORTAL_JWT_SECRET/PORTAL_JWT_REFRESH_SECRET (or global JWT secrets).',
+                500
+            );
+        }
     }
 }

@@ -28,7 +28,7 @@ class Cors extends BaseConfig
         parent::__construct();
 
         $defaultOrigins = ENVIRONMENT === 'production'
-            ? 'https://netxus.com.ar,https://api.netxus.com.ar,https://admin.netxus.com.ar'
+            ? 'https://netxus.com.ar,https://www.netxus.com.ar,https://api.netxus.com.ar,https://admin.netxus.com.ar'
             : 'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:5173,http://localhost:5174';
 
         $origins = env('CORS_ALLOWED_ORIGINS', $defaultOrigins);

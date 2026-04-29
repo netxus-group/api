@@ -26,13 +26,63 @@ class PortalAuth extends BaseConfig
     {
         parent::__construct();
 
-        $this->jwtSecret = env('PORTAL_JWT_SECRET', $this->jwtSecret ?: (string) env('JWT_SECRET', ''));
-        $this->jwtRefreshSecret = env('PORTAL_JWT_REFRESH_SECRET', $this->jwtRefreshSecret ?: (string) env('JWT_REFRESH_SECRET', ''));
-        $this->accessTokenExpires = (int) env('PORTAL_JWT_ACCESS_EXPIRES', $this->accessTokenExpires);
-        $this->refreshTokenExpires = (int) env('PORTAL_JWT_REFRESH_EXPIRES', $this->refreshTokenExpires);
+        $globalJwtSecret = $this->resolveEnvSecret(['JWT_SECRET', 'TOKEN_SECRET']);
+        $globalRefreshSecret = $this->resolveEnvSecret(['JWT_REFRESH_SECRET', 'REFRESH_TOKEN_SECRET'], $globalJwtSecret);
+
+        $this->jwtSecret = $this->resolveEnvSecret(
+            ['PORTAL_JWT_SECRET'],
+            $this->jwtSecret ?: $globalJwtSecret
+        );
+
+        $this->jwtRefreshSecret = $this->resolveEnvSecret(
+            ['PORTAL_JWT_REFRESH_SECRET'],
+            $this->jwtRefreshSecret ?: $globalRefreshSecret ?: $this->jwtSecret
+        );
+
+        if ($this->normalizeEnvValue($this->jwtRefreshSecret) === '') {
+            $this->jwtRefreshSecret = $this->jwtSecret;
+        }
+
+        $this->accessTokenExpires = $this->resolveEnvInt(
+            ['PORTAL_JWT_ACCESS_EXPIRES', 'PORTAL_JWT_ACCESS_TTL'],
+            $this->accessTokenExpires
+        );
+        $this->refreshTokenExpires = $this->resolveEnvInt(
+            ['PORTAL_JWT_REFRESH_EXPIRES', 'PORTAL_JWT_REFRESH_TTL'],
+            $this->refreshTokenExpires
+        );
         $this->passwordResetExpires = (int) env('PORTAL_PASSWORD_RESET_EXPIRES', $this->passwordResetExpires);
         $this->bcryptCost = (int) env('PORTAL_BCRYPT_COST', $this->bcryptCost);
         $this->maxLoginAttempts = (int) env('PORTAL_MAX_LOGIN_ATTEMPTS', $this->maxLoginAttempts);
         $this->attemptWindowSeconds = (int) env('PORTAL_LOGIN_ATTEMPT_WINDOW', $this->attemptWindowSeconds);
+    }
+
+    private function resolveEnvSecret(array $keys, string $fallback = ''): string
+    {
+        foreach ($keys as $key) {
+            $value = $this->normalizeEnvValue((string) env($key, ''));
+            if ($value !== '') {
+                return $value;
+            }
+        }
+
+        return $this->normalizeEnvValue($fallback);
+    }
+
+    private function resolveEnvInt(array $keys, int $fallback): int
+    {
+        foreach ($keys as $key) {
+            $raw = $this->normalizeEnvValue((string) env($key, ''));
+            if ($raw !== '' && is_numeric($raw)) {
+                return (int) $raw;
+            }
+        }
+
+        return $fallback;
+    }
+
+    private function normalizeEnvValue(string $value): string
+    {
+        return trim($value, " \t\n\r\0\x0B'\"");
     }
 }

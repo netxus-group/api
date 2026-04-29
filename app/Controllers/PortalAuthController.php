@@ -32,6 +32,8 @@ class PortalAuthController extends PortalBaseApiController
             return ApiResponse::created($result, 'Portal user registered successfully');
         } catch (\RuntimeException $exception) {
             return $this->mapException($exception);
+        } catch (\Throwable) {
+            return ApiResponse::serverError('Portal authentication service error');
         }
     }
 
@@ -60,6 +62,8 @@ class PortalAuthController extends PortalBaseApiController
             return ApiResponse::ok($result, 'Portal login successful');
         } catch (\RuntimeException $exception) {
             return $this->mapException($exception);
+        } catch (\Throwable) {
+            return ApiResponse::serverError('Portal authentication service error');
         }
     }
 
@@ -86,6 +90,8 @@ class PortalAuthController extends PortalBaseApiController
             return ApiResponse::ok($result, 'Portal token refreshed');
         } catch (\RuntimeException $exception) {
             return $this->mapException($exception);
+        } catch (\Throwable) {
+            return ApiResponse::serverError('Portal authentication service error');
         }
     }
 
@@ -158,6 +164,8 @@ class PortalAuthController extends PortalBaseApiController
             return ApiResponse::ok(null, 'Password reset successful');
         } catch (\RuntimeException $exception) {
             return $this->mapException($exception);
+        } catch (\Throwable) {
+            return ApiResponse::serverError('Portal authentication service error');
         }
     }
 
@@ -172,6 +180,7 @@ class PortalAuthController extends PortalBaseApiController
                 'status' => 'error',
                 'message' => $exception->getMessage(),
             ]),
+            500 => ApiResponse::serverError($exception->getMessage()),
             default => ApiResponse::badRequest($exception->getMessage()),
         };
     }

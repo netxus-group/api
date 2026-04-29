@@ -92,8 +92,9 @@ database.default.DBDriver = MySQLi
 
 # JWT
 JWT_SECRET = tu-clave-secreta-minimo-32-caracteres
-JWT_ACCESS_TTL = 900    # 15 minutos
-JWT_REFRESH_TTL = 604800 # 7 días
+JWT_REFRESH_SECRET = otra-clave-secreta-minimo-32-caracteres
+JWT_ACCESS_EXPIRES = 900    # 15 minutos
+JWT_REFRESH_EXPIRES = 604800 # 7 días
 
 # CORS (separar orígenes con coma)
 CORS_ALLOWED_ORIGINS = http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:5173,http://localhost:5174
@@ -279,7 +280,7 @@ Crear la base de datos desde el panel del hosting (cPanel/Plesk) y configurar el
 
 Actualizar `CORS_ALLOWED_ORIGINS` en `.env` con los dominios de producción:
 ```ini
-CORS_ALLOWED_ORIGINS = https://netxus.com.ar,https://api.netxus.com.ar,https://admin.netxus.com.ar
+CORS_ALLOWED_ORIGINS = https://netxus.com.ar,https://www.netxus.com.ar,https://api.netxus.com.ar,https://admin.netxus.com.ar
 ```
 
 ## Usuarios de prueba

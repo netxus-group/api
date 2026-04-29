@@ -25,6 +25,7 @@ class AuthService
         $this->passwordResetModel = new UserPasswordResetModel();
         $this->jwt          = service('jwtManager');
         $this->config       = config('Auth');
+        $this->assertJwtConfig();
     }
 
     /**
@@ -236,5 +237,18 @@ class AuthService
         }
 
         return (string) $roles[0];
+    }
+
+    private function assertJwtConfig(): void
+    {
+        $accessSecret = trim((string) $this->config->jwtSecret);
+        $refreshSecret = trim((string) $this->config->jwtRefreshSecret);
+
+        if ($accessSecret === '' || $refreshSecret === '') {
+            throw new \RuntimeException(
+                'JWT configuration is missing. Define JWT_SECRET and JWT_REFRESH_SECRET in server environment.',
+                500
+            );
+        }
     }
 }

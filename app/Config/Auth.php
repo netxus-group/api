@@ -71,10 +71,33 @@ class Auth extends BaseConfig
     {
         parent::__construct();
 
-        $this->jwtSecret           = env('JWT_SECRET', $this->jwtSecret);
-        $this->jwtRefreshSecret    = env('JWT_REFRESH_SECRET', $this->jwtRefreshSecret);
-        $this->accessTokenExpires  = (int) env('TOKEN_TTL', env('JWT_ACCESS_EXPIRES', $this->accessTokenExpires));
-        $this->refreshTokenExpires = (int) env('JWT_REFRESH_EXPIRES', $this->refreshTokenExpires);
+        // Backward compatibility:
+        // Some deployments still use legacy env keys documented in early README versions.
+        $this->jwtSecret = $this->resolveEnvSecret([
+            'JWT_SECRET',
+            'TOKEN_SECRET',
+        ], $this->jwtSecret);
+
+        $this->jwtRefreshSecret = $this->resolveEnvSecret([
+            'JWT_REFRESH_SECRET',
+            'REFRESH_TOKEN_SECRET',
+        ], $this->jwtRefreshSecret ?: $this->jwtSecret);
+
+        // If refresh secret is still empty, fallback to access secret instead of crashing at runtime.
+        if ($this->normalizeEnvValue($this->jwtRefreshSecret) === '') {
+            $this->jwtRefreshSecret = $this->jwtSecret;
+        }
+
+        $this->accessTokenExpires = $this->resolveEnvInt([
+            'TOKEN_TTL',
+            'JWT_ACCESS_EXPIRES',
+            'JWT_ACCESS_TTL',
+        ], $this->accessTokenExpires);
+
+        $this->refreshTokenExpires = $this->resolveEnvInt([
+            'JWT_REFRESH_EXPIRES',
+            'JWT_REFRESH_TTL',
+        ], $this->refreshTokenExpires);
         $this->passwordResetExpires = (int) env('JWT_PASSWORD_RESET_EXPIRES', $this->passwordResetExpires);
         $this->newsletterSecret    = env('NEWSLETTER_UNSUBSCRIBE_SECRET', $this->newsletterSecret);
     }
@@ -91,5 +114,34 @@ class Auth extends BaseConfig
         }
 
         return in_array($capability, $caps, true);
+    }
+
+    private function resolveEnvSecret(array $keys, string $fallback = ''): string
+    {
+        foreach ($keys as $key) {
+            $value = $this->normalizeEnvValue((string) env($key, ''));
+            if ($value !== '') {
+                return $value;
+            }
+        }
+
+        return $this->normalizeEnvValue($fallback);
+    }
+
+    private function resolveEnvInt(array $keys, int $fallback): int
+    {
+        foreach ($keys as $key) {
+            $raw = $this->normalizeEnvValue((string) env($key, ''));
+            if ($raw !== '' && is_numeric($raw)) {
+                return (int) $raw;
+            }
+        }
+
+        return $fallback;
+    }
+
+    private function normalizeEnvValue(string $value): string
+    {
+        return trim($value, " \t\n\r\0\x0B'\"");
     }
 }

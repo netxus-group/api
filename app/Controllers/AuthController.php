@@ -22,7 +22,9 @@ class AuthController extends BaseApiController
             $result      = $authService->login($data['email'], $data['password']);
             return ApiResponse::ok($result, 'Login successful');
         } catch (\RuntimeException $e) {
-            return ApiResponse::unauthorized($e->getMessage());
+            return $this->mapException($e);
+        } catch (\Throwable) {
+            return ApiResponse::serverError('Authentication service error');
         }
     }
 
@@ -42,7 +44,9 @@ class AuthController extends BaseApiController
             $result      = $authService->refresh($data['refreshToken']);
             return ApiResponse::ok($result, 'Token refreshed');
         } catch (\RuntimeException $e) {
-            return ApiResponse::unauthorized($e->getMessage());
+            return $this->mapException($e);
+        } catch (\Throwable) {
+            return ApiResponse::serverError('Authentication service error');
         }
     }
 
@@ -117,5 +121,22 @@ class AuthController extends BaseApiController
                 default => ApiResponse::badRequest($exception->getMessage()),
             };
         }
+    }
+
+    private function mapException(\RuntimeException $exception)
+    {
+        return match ($exception->getCode()) {
+            401 => ApiResponse::unauthorized($exception->getMessage()),
+            403 => ApiResponse::forbidden($exception->getMessage()),
+            404 => ApiResponse::notFound($exception->getMessage()),
+            409 => ApiResponse::conflict($exception->getMessage()),
+            422 => ApiResponse::validationError(['auth' => $exception->getMessage()]),
+            429 => service('response')->setStatusCode(429)->setJSON([
+                'status' => 'error',
+                'message' => $exception->getMessage(),
+            ]),
+            500 => ApiResponse::serverError($exception->getMessage()),
+            default => ApiResponse::badRequest($exception->getMessage()),
+        };
     }
 }
