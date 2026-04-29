@@ -17,13 +17,13 @@ BEGIN
 -- Users: 2 editors + 2 writers (admin already seeded)
 -- Password for all: Test1234!
 -- -----------------------------------------------------------
-  IF NOT EXISTS (SELECT 1 FROM `users` LIMIT 1) THEN
+  IF TRUE THEN
     INSERT INTO `users` (`id`, `email`, `password_hash`, `first_name`, `last_name`, `display_name`, `active`, `email_verified`, `created_at`, `updated_at`) VALUES
-    ('10000000-0000-0000-0000-000000000002', 'admin2@netxus.com',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Carlos',  'MÃƒÆ’Ã‚Â©ndez',   'Carlos MÃƒÆ’Ã‚Â©ndez',   1, 1, NOW(), NOW()),
-    ('10000000-0000-0000-0000-000000000003', 'editor1@netxus.com',  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Laura',   'GimÃƒÆ’Ã‚Â©nez',  'Laura GimÃƒÆ’Ã‚Â©nez',   1, 1, NOW(), NOW()),
-    ('10000000-0000-0000-0000-000000000004', 'editor2@netxus.com',  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'MartÃƒÆ’Ã‚Â­n',  'LÃƒÆ’Ã‚Â³pez',    'MartÃƒÆ’Ã‚Â­n LÃƒÆ’Ã‚Â³pez',    1, 1, NOW(), NOW()),
-    ('10000000-0000-0000-0000-000000000005', 'writer1@netxus.com',  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Ana',     'RodrÃƒÆ’Ã‚Â­guez','Ana RodrÃƒÆ’Ã‚Â­guez',   1, 1, NOW(), NOW()),
-    ('10000000-0000-0000-0000-000000000006', 'writer2@netxus.com',  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Diego',   'FernÃƒÆ’Ã‚Â¡ndez','Diego FernÃƒÆ’Ã‚Â¡ndez', 1, 1, NOW(), NOW())
+    ('10000000-0000-0000-0000-000000000002', 'admin2@netxus.com',   '$2y$10$rxLAXbn5yKMaWCRFILOD8ulkOdR9AHyAcXChs6MfgIjzD2zszg77.', 'Carlos',  'MÃƒÆ’Ã‚Â©ndez',   'Carlos MÃƒÆ’Ã‚Â©ndez',   1, 1, NOW(), NOW()),
+    ('10000000-0000-0000-0000-000000000003', 'editor1@netxus.com',  '$2y$10$rxLAXbn5yKMaWCRFILOD8ulkOdR9AHyAcXChs6MfgIjzD2zszg77.', 'Laura',   'GimÃƒÆ’Ã‚Â©nez',  'Laura GimÃƒÆ’Ã‚Â©nez',   1, 1, NOW(), NOW()),
+    ('10000000-0000-0000-0000-000000000004', 'editor2@netxus.com',  '$2y$10$rxLAXbn5yKMaWCRFILOD8ulkOdR9AHyAcXChs6MfgIjzD2zszg77.', 'MartÃƒÆ’Ã‚Â­n',  'LÃƒÆ’Ã‚Â³pez',    'MartÃƒÆ’Ã‚Â­n LÃƒÆ’Ã‚Â³pez',    1, 1, NOW(), NOW()),
+    ('10000000-0000-0000-0000-000000000005', 'writer1@netxus.com',  '$2y$10$rxLAXbn5yKMaWCRFILOD8ulkOdR9AHyAcXChs6MfgIjzD2zszg77.', 'Ana',     'RodrÃƒÆ’Ã‚Â­guez','Ana RodrÃƒÆ’Ã‚Â­guez',   1, 1, NOW(), NOW()),
+    ('10000000-0000-0000-0000-000000000006', 'writer2@netxus.com',  '$2y$10$rxLAXbn5yKMaWCRFILOD8ulkOdR9AHyAcXChs6MfgIjzD2zszg77.', 'Diego',   'FernÃƒÆ’Ã‚Â¡ndez','Diego FernÃƒÆ’Ã‚Â¡ndez', 1, 1, NOW(), NOW())
     ON DUPLICATE KEY UPDATE
       `email` = VALUES(`email`),
       `password_hash` = VALUES(`password_hash`),
@@ -36,7 +36,7 @@ BEGIN
   END IF;
 
 -- Assign roles
-  IF NOT EXISTS (SELECT 1 FROM `user_roles` LIMIT 1) THEN
+  IF TRUE THEN
     INSERT INTO `user_roles` (`id`, `user_id`, `role_profile_id`, `created_at`) VALUES
     ('20000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', NOW()),
     ('20000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000002', NOW()),
@@ -50,7 +50,7 @@ BEGIN
 -- -----------------------------------------------------------
 -- Authors
 -- -----------------------------------------------------------
-  IF NOT EXISTS (SELECT 1 FROM `authors` LIMIT 1) THEN
+  IF TRUE THEN
     INSERT INTO `authors` (`id`, `name`, `slug`, `bio`, `email`, `active`, `created_at`, `updated_at`) VALUES
     ('a0000000-0000-0000-0000-000000000001', 'MarÃƒÆ’Ã‚Â­a BelÃƒÆ’Ã‚Â©n Torres',   'maria-belen-torres',   'Periodista especializada en polÃƒÆ’Ã‚Â­tica y economÃƒÆ’Ã‚Â­a.',        'maria@netxus.com',  1, NOW(), NOW()),
     ('a0000000-0000-0000-0000-000000000002', 'JoaquÃƒÆ’Ã‚Â­n PÃƒÆ’Ã‚Â©rez',        'joaquin-perez',         'Corresponsal de deportes y actualidad.',                  'joaquin@netxus.com',1, NOW(), NOW()),
@@ -69,7 +69,7 @@ BEGIN
 -- -----------------------------------------------------------
 -- Categories
 -- -----------------------------------------------------------
-  IF NOT EXISTS (SELECT 1 FROM `categories` LIMIT 1) THEN
+  IF TRUE THEN
     INSERT INTO `categories` (`id`, `name`, `slug`, `description`, `color`, `sort_order`, `active`, `created_at`, `updated_at`) VALUES
     ('c0000000-0000-0000-0000-000000000001', 'PolÃƒÆ’Ã‚Â­tica',     'politica',     'Noticias polÃƒÆ’Ã‚Â­ticas nacionales e internacionales', '#E53E3E', 1, 1, NOW(), NOW()),
     ('c0000000-0000-0000-0000-000000000002', 'EconomÃƒÆ’Ã‚Â­a',     'economia',     'Indicadores econÃƒÆ’Ã‚Â³micos, finanzas y mercados',     '#DD6B20', 2, 1, NOW(), NOW()),
@@ -92,7 +92,7 @@ BEGIN
 -- -----------------------------------------------------------
 -- Tags
 -- -----------------------------------------------------------
-  IF NOT EXISTS (SELECT 1 FROM `tags` LIMIT 1) THEN
+  IF TRUE THEN
     INSERT INTO `tags` (`id`, `name`, `slug`, `active`, `created_at`, `updated_at`) VALUES
     ('t0000000-0000-0000-0000-000000000001', 'Elecciones',     'elecciones',     1, NOW(), NOW()),
     ('t0000000-0000-0000-0000-000000000002', 'InflaciÃƒÆ’Ã‚Â³n',      'inflacion',      1, NOW(), NOW()),
@@ -114,7 +114,7 @@ BEGIN
 -- -----------------------------------------------------------
 -- News: Writer 1 (Ana) - 6 articles
 -- -----------------------------------------------------------
-  IF NOT EXISTS (SELECT 1 FROM `news` LIMIT 1) THEN
+  IF TRUE THEN
     INSERT INTO `news` (`id`, `title`, `slug`, `subtitle`, `excerpt`, `body`, `author_id`, `status`, `featured`, `breaking`, `created_by`, `published_at`, `view_count`, `created_at`, `updated_at`) VALUES
     ('n0000000-0000-0000-0000-000000000001', 'El gobierno anuncia nuevas medidas econÃƒÆ’Ã‚Â³micas para el segundo semestre', 'gobierno-anuncia-nuevas-medidas-economicas-segundo-semestre', 'Plan de estabilizaciÃƒÆ’Ã‚Â³n incluye recorte del gasto pÃƒÆ’Ã‚Âºblico', 'El Ministerio de EconomÃƒÆ’Ã‚Â­a presentÃƒÆ’Ã‚Â³ un paquete de medidas que busca reducir el dÃƒÆ’Ã‚Â©ficit fiscal en un 2% durante los prÃƒÆ’Ã‚Â³ximos 6 meses.', '<p>El Ministerio de EconomÃƒÆ’Ã‚Â­a presentÃƒÆ’Ã‚Â³ esta maÃƒÆ’Ã‚Â±ana un paquete integral de medidas que busca reducir el dÃƒÆ’Ã‚Â©ficit fiscal en un 2% durante los prÃƒÆ’Ã‚Â³ximos 6 meses. Entre las principales iniciativas se destacan la reducciÃƒÆ’Ã‚Â³n del gasto corriente, la implementaciÃƒÆ’Ã‚Â³n de nuevos incentivos para la inversiÃƒÆ’Ã‚Â³n extranjera y un plan de regularizaciÃƒÆ’Ã‚Â³n impositiva.</p><p>El ministro destacÃƒÆ’Ã‚Â³ que estas medidas son necesarias para mantener la estabilidad macroeconÃƒÆ’Ã‚Â³mica lograda en el primer trimestre. "Estamos trabajando para consolidar un camino de crecimiento sostenible", afirmÃƒÆ’Ã‚Â³ en conferencia de prensa.</p>', 'a0000000-0000-0000-0000-000000000001', 'published', 1, 0, '10000000-0000-0000-0000-000000000005', DATE_SUB(NOW(), INTERVAL 2 DAY), 1450, NOW(), NOW()),
     
@@ -146,7 +146,7 @@ BEGIN
 -- -----------------------------------------------------------
 -- News: Writer 2 (Diego) - 6 articles
 -- -----------------------------------------------------------
-  IF NOT EXISTS (SELECT 1 FROM `news` LIMIT 1) THEN
+  IF TRUE THEN
     INSERT INTO `news` (`id`, `title`, `slug`, `subtitle`, `excerpt`, `body`, `author_id`, `status`, `featured`, `breaking`, `created_by`, `published_at`, `view_count`, `created_at`, `updated_at`) VALUES
     ('n0000000-0000-0000-0000-000000000007', 'Mercados: el dÃƒÆ’Ã‚Â³lar se estabiliza tras semanas de volatilidad', 'mercados-dolar-estabiliza-semanas-volatilidad', 'Analistas esperan que la tendencia se mantenga', 'Tras cuatro semanas de fuertes oscilaciones, el tipo de cambio paralelo se estabiliza en la zona de $1.250.', '<p>Tras cuatro semanas de fuertes oscilaciones, el tipo de cambio paralelo se estabiliza en la zona de $1.250. Los analistas consultados coinciden en que las recientes medidas del Banco Central lograron contener la presiÃƒÆ’Ã‚Â³n cambiaria, aunque advierten que la estabilidad depende del cierre exitoso de las negociaciones con organismos internacionales.</p>', 'a0000000-0000-0000-0000-000000000001', 'published', 0, 0, '10000000-0000-0000-0000-000000000006', DATE_SUB(NOW(), INTERVAL 1 DAY), 1350, NOW(), NOW()),
     
@@ -327,12 +327,12 @@ INSERT IGNORE INTO `news_tags` (`id`, `news_id`, `tag_id`) VALUES
 -- Portal User Feature Test Data
 -- Password for portal users: Portal123!
 -- -----------------------------------------------------------
-  IF NOT EXISTS (SELECT 1 FROM `portal_users` LIMIT 1) THEN
+  IF TRUE THEN
     INSERT INTO `portal_users` (`id`, `email`, `password_hash`, `first_name`, `last_name`, `display_name`, `active`, `last_login_at`, `created_at`, `updated_at`) VALUES
-    ('50000000-0000-0000-0000-000000000001', 'lector.a@netxus.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Lectora', 'A', 'Lectora A', 1, NOW(), NOW(), NOW()),
-    ('50000000-0000-0000-0000-000000000002', 'lector.b@netxus.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Lector', 'B', 'Lector B', 1, NOW(), NOW(), NOW()),
-    ('50000000-0000-0000-0000-000000000003', 'lector.c@netxus.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Lectora', 'C', 'Lectora C', 1, NOW(), NOW(), NOW()),
-    ('50000000-0000-0000-0000-000000000004', 'lector.d@netxus.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Lector', 'D', 'Lector D', 1, NOW(), NOW(), NOW())
+    ('50000000-0000-0000-0000-000000000001', 'lector.a@netxus.com', '$2y$10$Cttx4dAQDzPwviksi/BeAeYGSSai5425Alh/WbUL.pb4UoM0RAJFO', 'Lectora', 'A', 'Lectora A', 1, NOW(), NOW(), NOW()),
+    ('50000000-0000-0000-0000-000000000002', 'lector.b@netxus.com', '$2y$10$Cttx4dAQDzPwviksi/BeAeYGSSai5425Alh/WbUL.pb4UoM0RAJFO', 'Lector', 'B', 'Lector B', 1, NOW(), NOW(), NOW()),
+    ('50000000-0000-0000-0000-000000000003', 'lector.c@netxus.com', '$2y$10$Cttx4dAQDzPwviksi/BeAeYGSSai5425Alh/WbUL.pb4UoM0RAJFO', 'Lectora', 'C', 'Lectora C', 1, NOW(), NOW(), NOW()),
+    ('50000000-0000-0000-0000-000000000004', 'lector.d@netxus.com', '$2y$10$Cttx4dAQDzPwviksi/BeAeYGSSai5425Alh/WbUL.pb4UoM0RAJFO', 'Lector', 'D', 'Lector D', 1, NOW(), NOW(), NOW())
     ON DUPLICATE KEY UPDATE `updated_at` = VALUES(`updated_at`);
   END IF;
 

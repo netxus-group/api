@@ -290,8 +290,12 @@ CREATE TABLE IF NOT EXISTS `newsletter_subscribers` (
   `id` CHAR(36) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
   `name` VARCHAR(200) DEFAULT NULL,
+  `source` VARCHAR(100) DEFAULT NULL,
+  `metadata` JSON DEFAULT NULL,
   `status` ENUM('pending','active','unsubscribed') NOT NULL DEFAULT 'pending',
   `confirmation_token` VARCHAR(500) DEFAULT NULL,
+  `unsubscribe_token_hash` VARCHAR(128) DEFAULT NULL,
+  `unsubscribe_token_expires_at` DATETIME DEFAULT NULL,
   `confirmed_at` DATETIME DEFAULT NULL,
   `created_at` DATETIME DEFAULT NULL,
   `updated_at` DATETIME DEFAULT NULL,
@@ -391,7 +395,7 @@ CREATE TABLE IF NOT EXISTS `integration_configs` (
   `provider` VARCHAR(50) NOT NULL,
   `api_key` VARCHAR(500) DEFAULT NULL,
   `endpoint` VARCHAR(500) DEFAULT NULL,
-  `ttl` VARCHAR(20) NOT NULL DEFAULT '30m',
+  `ttl` VARCHAR(20) NOT NULL DEFAULT '1h',
   `active` TINYINT(1) NOT NULL DEFAULT 1,
   `extra_config` JSON DEFAULT NULL,
   `created_at` DATETIME DEFAULT NULL,
@@ -406,13 +410,21 @@ CREATE TABLE IF NOT EXISTS `integration_configs` (
 CREATE TABLE IF NOT EXISTS `integration_snapshots` (
   `id` CHAR(36) NOT NULL,
   `provider` VARCHAR(50) NOT NULL,
+  `integration_key` VARCHAR(50) DEFAULT NULL,
+  `payload` JSON DEFAULT NULL,
   `data` JSON DEFAULT NULL,
   `fetched_at` DATETIME NOT NULL,
+  `ttl_seconds` INT NOT NULL DEFAULT 3600,
+  `expires_at` DATETIME DEFAULT NULL,
+  `status` VARCHAR(20) NOT NULL DEFAULT 'ok',
+  `error_message` TEXT DEFAULT NULL,
+  `refresh_lock_until` DATETIME DEFAULT NULL,
   `is_fallback` TINYINT(1) NOT NULL DEFAULT 0,
   `created_at` DATETIME DEFAULT NULL,
   `updated_at` DATETIME DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_snap_provider` (`provider`)
+  UNIQUE KEY `uk_snap_provider` (`provider`),
+  KEY `idx_integration_key` (`integration_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------
@@ -703,6 +715,8 @@ CREATE TABLE IF NOT EXISTS `surveys` (
   `requires_login` TINYINT(1) NOT NULL DEFAULT 0,
   `allow_back_navigation` TINYINT(1) NOT NULL DEFAULT 0,
   `questions_per_view` INT UNSIGNED DEFAULT NULL,
+  `notify_on_publish` TINYINT(1) NOT NULL DEFAULT 0,
+  `notify_active_users` TINYINT(1) NOT NULL DEFAULT 1,
   `created_by` CHAR(36) DEFAULT NULL,
   `updated_by` CHAR(36) DEFAULT NULL,
   `created_at` DATETIME DEFAULT NULL,
@@ -827,6 +841,164 @@ CREATE TABLE IF NOT EXISTS `survey_answers` (
   CONSTRAINT `fk_survey_answers_survey` FOREIGN KEY (`survey_id`) REFERENCES `surveys` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_survey_answers_section` FOREIGN KEY (`section_id`) REFERENCES `survey_sections` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_survey_answers_question` FOREIGN KEY (`question_id`) REFERENCES `survey_questions` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------
+-- 41. Communication Settings
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `communication_settings` (
+  `id` CHAR(36) NOT NULL,
+  `scope` VARCHAR(50) NOT NULL,
+  `public_config` JSON DEFAULT NULL,
+  `secret_config_encrypted` TEXT DEFAULT NULL,
+  `created_at` DATETIME DEFAULT NULL,
+  `updated_at` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_communication_settings_scope` (`scope`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------
+-- 42. Email Templates
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `email_templates` (
+  `id` CHAR(36) NOT NULL,
+  `key` VARCHAR(80) NOT NULL,
+  `name` VARCHAR(160) NOT NULL,
+  `subject` VARCHAR(255) NOT NULL,
+  `html_body` LONGTEXT NOT NULL,
+  `text_body` LONGTEXT DEFAULT NULL,
+  `variables_json` JSON DEFAULT NULL,
+  `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+  `created_at` DATETIME DEFAULT NULL,
+  `updated_at` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_email_templates_key` (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------
+-- 43. Communication Logs
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `communication_logs` (
+  `id` CHAR(36) NOT NULL,
+  `channel` ENUM('email','push') NOT NULL DEFAULT 'email',
+  `provider` VARCHAR(80) NOT NULL,
+  `template_key` VARCHAR(80) DEFAULT NULL,
+  `recipient_email` VARCHAR(255) DEFAULT NULL,
+  `recipient_user_id` CHAR(36) DEFAULT NULL,
+  `subject` VARCHAR(255) DEFAULT NULL,
+  `status` ENUM('pending','sent','failed','skipped') NOT NULL DEFAULT 'pending',
+  `error_message` TEXT DEFAULT NULL,
+  `metadata_json` JSON DEFAULT NULL,
+  `sent_at` DATETIME DEFAULT NULL,
+  `created_at` DATETIME DEFAULT NULL,
+  `updated_at` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_communication_logs_channel` (`channel`),
+  KEY `idx_communication_logs_status` (`status`),
+  KEY `idx_communication_logs_template` (`template_key`),
+  KEY `idx_communication_logs_recipient_email` (`recipient_email`),
+  KEY `idx_communication_logs_recipient_user` (`recipient_user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------
+-- 44. Newsletter Campaigns
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `newsletter_campaigns` (
+  `id` CHAR(36) NOT NULL,
+  `title` VARCHAR(255) NOT NULL,
+  `subject` VARCHAR(255) NOT NULL,
+  `template_key` VARCHAR(80) NOT NULL DEFAULT 'newsletter_news_digest',
+  `news_ids_json` JSON DEFAULT NULL,
+  `audience` VARCHAR(80) NOT NULL DEFAULT 'active_subscribers',
+  `status` ENUM('draft','sending','sent','failed') NOT NULL DEFAULT 'draft',
+  `preview_html` LONGTEXT DEFAULT NULL,
+  `scheduled_at` DATETIME DEFAULT NULL,
+  `sent_at` DATETIME DEFAULT NULL,
+  `created_by` CHAR(36) DEFAULT NULL,
+  `created_at` DATETIME DEFAULT NULL,
+  `updated_at` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_newsletter_campaigns_status` (`status`),
+  KEY `idx_newsletter_campaigns_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------
+-- 45. Newsletter Campaign Items
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `newsletter_campaign_items` (
+  `id` CHAR(36) NOT NULL,
+  `campaign_id` CHAR(36) NOT NULL,
+  `news_id` CHAR(36) NOT NULL,
+  `sort_order` INT UNSIGNED NOT NULL DEFAULT 1,
+  `created_at` DATETIME DEFAULT NULL,
+  `updated_at` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_newsletter_campaign_items` (`campaign_id`,`news_id`),
+  KEY `idx_newsletter_campaign_items_campaign` (`campaign_id`),
+  KEY `idx_newsletter_campaign_items_news` (`news_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------
+-- 46. Survey Notification Logs
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `survey_notification_logs` (
+  `id` CHAR(36) NOT NULL,
+  `survey_id` CHAR(36) NOT NULL,
+  `recipient_user_id` CHAR(36) DEFAULT NULL,
+  `recipient_email` VARCHAR(255) DEFAULT NULL,
+  `notification_type` ENUM('published','reminder','manual') NOT NULL DEFAULT 'published',
+  `sent_count` INT UNSIGNED NOT NULL DEFAULT 0,
+  `last_sent_at` DATETIME DEFAULT NULL,
+  `status` ENUM('pending','sent','failed','skipped') NOT NULL DEFAULT 'pending',
+  `error_message` TEXT DEFAULT NULL,
+  `metadata_json` JSON DEFAULT NULL,
+  `created_at` DATETIME DEFAULT NULL,
+  `updated_at` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_survey_notification_logs_survey` (`survey_id`),
+  KEY `idx_survey_notification_logs_user` (`recipient_user_id`),
+  KEY `idx_survey_notification_logs_type` (`notification_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------
+-- 47. Portal User Notifications
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `portal_user_notifications` (
+  `id` CHAR(36) NOT NULL,
+  `portal_user_id` CHAR(36) NOT NULL,
+  `event_key` VARCHAR(190) NOT NULL,
+  `type` VARCHAR(60) NOT NULL DEFAULT 'general',
+  `title` VARCHAR(255) NOT NULL,
+  `body` TEXT DEFAULT NULL,
+  `url` VARCHAR(500) DEFAULT NULL,
+  `metadata_json` JSON DEFAULT NULL,
+  `is_read` TINYINT(1) NOT NULL DEFAULT 0,
+  `read_at` DATETIME DEFAULT NULL,
+  `created_at` DATETIME DEFAULT NULL,
+  `updated_at` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_portal_user_notifications_event` (`portal_user_id`,`event_key`),
+  KEY `idx_portal_user_notifications_user` (`portal_user_id`),
+  KEY `idx_portal_user_notifications_read` (`is_read`),
+  KEY `idx_portal_user_notifications_created_at` (`created_at`),
+  CONSTRAINT `fk_portal_user_notifications_user` FOREIGN KEY (`portal_user_id`) REFERENCES `portal_users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------
+-- 48. User Password Resets (editorial users)
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `user_password_resets` (
+  `id` CHAR(36) NOT NULL,
+  `user_id` CHAR(36) NOT NULL,
+  `token_hash` VARCHAR(128) NOT NULL,
+  `expires_at` DATETIME NOT NULL,
+  `used_at` DATETIME DEFAULT NULL,
+  `created_at` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_password_resets_hash` (`token_hash`),
+  KEY `idx_user_password_resets_user` (`user_id`),
+  KEY `idx_user_password_resets_expires_at` (`expires_at`),
+  CONSTRAINT `fk_user_password_resets_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
