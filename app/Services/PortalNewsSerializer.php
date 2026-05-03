@@ -14,7 +14,7 @@ class PortalNewsSerializer
         $title = (string) ($row['title'] ?? '');
         $summary = (string) ($row['summary'] ?? $row['excerpt'] ?? '');
         $content = (string) ($row['content'] ?? $row['body'] ?? '');
-        $heroImage = AssetUrl::normalize($row['hero_image'] ?? $row['cover_image_url'] ?? null);
+        $heroImage = AssetUrl::normalize($row['hero_image'] ?? $row['cover_image_url'] ?? $row['heroImage'] ?? null);
         $publishAt = $row['publish_at'] ?? $row['published_at'] ?? null;
 
         $authorId = $row['author_id'] ?? null;

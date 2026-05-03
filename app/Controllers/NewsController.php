@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Libraries\ApiResponse;
 use App\Models\NewsModel;
 use App\Services\PortalNewsSerializer;
+use App\Support\AssetUrl;
 
 class NewsController extends BaseApiController
 {
@@ -163,6 +164,7 @@ class NewsController extends BaseApiController
 
         $db = db_connect();
         [$categoriesByNews, $tagsByNews] = PortalNewsSerializer::loadTaxonomyMaps($db, $newsIds);
+        $mediaImageIdByUrl = $this->loadMediaImageIdByUrl($db);
 
         $authorIds = [];
         foreach ($rows as $row) {
@@ -173,7 +175,7 @@ class NewsController extends BaseApiController
         }
         $authorsById = PortalNewsSerializer::loadAuthorsMap($db, array_values(array_unique($authorIds)));
 
-        return array_map(function (array $row) use ($categoriesByNews, $tagsByNews, $authorsById): array {
+        return array_map(function (array $row) use ($categoriesByNews, $tagsByNews, $authorsById, $mediaImageIdByUrl): array {
             if (!array_key_exists('author_id', $row) && array_key_exists('authorId', $row)) {
                 $row['author_id'] = $row['authorId'];
             }
@@ -194,7 +196,14 @@ class NewsController extends BaseApiController
             $base['status'] = (string) ($row['status'] ?? 'draft');
             $base['createdBy'] = $row['created_by'] ?? $row['createdBy'] ?? null;
             $base['reviewedBy'] = $row['reviewed_by'] ?? $row['reviewedBy'] ?? null;
-            $base['heroImageId'] = $row['hero_image_id'] ?? $row['heroImageId'] ?? null;
+            $heroImageId = $row['hero_image_id'] ?? $row['heroImageId'] ?? null;
+            if (($heroImageId === null || $heroImageId === '') && !empty($base['heroImage'])) {
+                $normalizedHero = AssetUrl::normalize((string) $base['heroImage']);
+                if (is_string($normalizedHero) && isset($mediaImageIdByUrl[$normalizedHero])) {
+                    $heroImageId = $mediaImageIdByUrl[$normalizedHero];
+                }
+            }
+            $base['heroImageId'] = $heroImageId;
             $base['createdAt'] = $row['created_at'] ?? $row['createdAt'] ?? null;
             $base['updatedAt'] = $row['updated_at'] ?? $row['updatedAt'] ?? null;
             return $base;
@@ -215,5 +224,51 @@ class NewsController extends BaseApiController
         }
 
         return (array) $item;
+    }
+
+    /**
+     * @return array<string, string> map of normalized URL to media image ID
+     */
+    private function loadMediaImageIdByUrl(\CodeIgniter\Database\BaseConnection $db): array
+    {
+        $columns = array_map('strtolower', $db->getFieldNames('media_images'));
+        $select = ['id'];
+
+        foreach (['public_url', 'url'] as $candidate) {
+            if (in_array($candidate, $columns, true)) {
+                $select[] = $candidate;
+            }
+        }
+
+        if (count($select) === 1) {
+            return [];
+        }
+
+        $rows = $db->table('media_images')
+            ->select(implode(', ', $select))
+            ->where('active', 1)
+            ->get()
+            ->getResultArray();
+
+        $map = [];
+        foreach ($rows as $row) {
+            $id = (string) ($row['id'] ?? '');
+            if ($id === '') {
+                continue;
+            }
+
+            foreach (['public_url', 'url'] as $key) {
+                $raw = $row[$key] ?? null;
+                if (!is_string($raw) || trim($raw) === '') {
+                    continue;
+                }
+                $normalized = AssetUrl::normalize($raw);
+                if (is_string($normalized) && $normalized !== '') {
+                    $map[$normalized] = $id;
+                }
+            }
+        }
+
+        return $map;
     }
 }

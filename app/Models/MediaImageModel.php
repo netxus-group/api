@@ -18,6 +18,8 @@ class MediaImageModel extends Model
         'id', 'file_path', 'public_url', 'original_file_name',
         'mime_type', 'title', 'alt_text', 'caption',
         'marketing_meta', 'uploaded_by', 'active',
+        'filename', 'original_name', 'size', 'width', 'height',
+        'url', 'folder',
     ];
 
     protected array $casts = [
@@ -33,19 +35,48 @@ class MediaImageModel extends Model
         $builder = $this->where('active', 1);
 
         if ($search) {
-            $builder->groupStart()
-                ->like('title', $search)
-                ->orLike('alt_text', $search)
-                ->orLike('original_file_name', $search)
-                ->groupEnd();
+            $searchableColumns = [];
+
+            if ($this->hasColumn('title')) {
+                $searchableColumns[] = 'title';
+            }
+            if ($this->hasColumn('alt_text')) {
+                $searchableColumns[] = 'alt_text';
+            }
+            if ($this->hasColumn('original_file_name')) {
+                $searchableColumns[] = 'original_file_name';
+            } elseif ($this->hasColumn('original_name')) {
+                $searchableColumns[] = 'original_name';
+            }
+
+            if (!empty($searchableColumns)) {
+                $first = array_shift($searchableColumns);
+                $builder->groupStart()->like($first, $search);
+                foreach ($searchableColumns as $column) {
+                    $builder->orLike($column, $search);
+                }
+                $builder->groupEnd();
+            }
         }
 
         $total = $builder->countAllResults(false);
 
-        $items = $builder->orderBy('created_at', 'DESC')
+        $orderColumn = $this->hasColumn('created_at') ? 'created_at' : 'id';
+        $items = $builder->orderBy($orderColumn, 'DESC')
             ->limit($perPage, ($page - 1) * $perPage)
             ->find();
 
         return ['items' => $items, 'total' => $total];
+    }
+
+    private ?array $tableColumns = null;
+
+    private function hasColumn(string $column): bool
+    {
+        if ($this->tableColumns === null) {
+            $this->tableColumns = array_map('strtolower', $this->db->getFieldNames($this->table));
+        }
+
+        return in_array(strtolower($column), $this->tableColumns, true);
     }
 }

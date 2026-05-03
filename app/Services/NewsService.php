@@ -6,6 +6,7 @@ use App\Models\NewsModel;
 use App\Models\NewsCategoryModel;
 use App\Models\NewsTagModel;
 use App\Models\PostStatusHistoryModel;
+use App\Models\MediaImageModel;
 use App\Libraries\SlugGenerator;
 use App\Entities\News;
 use App\Support\AssetUrl;
@@ -16,6 +17,7 @@ class NewsService
     private NewsCategoryModel $catModel;
     private NewsTagModel $tagModel;
     private PostStatusHistoryModel $historyModel;
+    private MediaImageModel $mediaImageModel;
 
     public function __construct()
     {
@@ -23,6 +25,7 @@ class NewsService
         $this->catModel     = new NewsCategoryModel();
         $this->tagModel     = new NewsTagModel();
         $this->historyModel = new PostStatusHistoryModel();
+        $this->mediaImageModel = new MediaImageModel();
     }
 
     /**
@@ -47,7 +50,7 @@ class NewsService
             'title'           => $data['title'],
             'excerpt'         => $data['summary'],
             'body'            => $data['content'],
-            'cover_image_url' => AssetUrl::normalize($data['heroImage'] ?? null),
+            'cover_image_url' => $this->resolveHeroImageUrl($data),
             'status'          => $status,
             'published_at'    => $status === 'published' ? $publishAt : null,
             'scheduled_at'    => $status === 'scheduled' ? $publishAt : null,
@@ -108,12 +111,11 @@ class NewsService
         }
 
         $updateData = [];
-        $fields = ['title', 'summary', 'content', 'heroImage', 'authorId', 'status', 'featured', 'publishAt'];
+        $fields = ['title', 'summary', 'content', 'authorId', 'status', 'featured', 'publishAt'];
 
         $fieldMap = [
             'summary'     => 'excerpt',
             'content'     => 'body',
-            'heroImage'   => 'cover_image_url',
             'authorId'    => 'author_id',
             'publishAt'   => 'published_at',
         ];
@@ -122,11 +124,12 @@ class NewsService
             if (array_key_exists($field, $data)) {
                 $dbField = $fieldMap[$field] ?? $field;
                 $value = $data[$field];
-                if ($field === 'heroImage') {
-                    $value = AssetUrl::normalize(is_string($value) ? $value : null);
-                }
                 $updateData[$dbField] = $value;
             }
+        }
+
+        if (array_key_exists('heroImage', $data) || array_key_exists('heroImageId', $data)) {
+            $updateData['cover_image_url'] = $this->resolveHeroImageUrl($data);
         }
 
         // If status changed to approved, record reviewer
@@ -226,5 +229,27 @@ class NewsService
             random_int(0, 0x3fff) | 0x8000,
             random_int(0, 0xffff), random_int(0, 0xffff), random_int(0, 0xffff)
         );
+    }
+
+    private function resolveHeroImageUrl(array $data): ?string
+    {
+        $heroImage = $data['heroImage'] ?? null;
+        if (is_string($heroImage) && trim($heroImage) !== '') {
+            return AssetUrl::normalize($heroImage);
+        }
+
+        $heroImageId = $data['heroImageId'] ?? null;
+        if (!is_string($heroImageId) || trim($heroImageId) === '') {
+            return null;
+        }
+
+        $image = $this->mediaImageModel->find($heroImageId);
+        if (!$image) {
+            return null;
+        }
+
+        $row = $image->toArray();
+        $url = $row['public_url'] ?? $row['url'] ?? $row['publicUrl'] ?? null;
+        return AssetUrl::normalize(is_string($url) ? $url : null);
     }
 }

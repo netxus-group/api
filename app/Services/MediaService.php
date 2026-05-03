@@ -9,6 +9,7 @@ class MediaService
     private MediaImageModel $imageModel;
     private string $uploadPath;
     private string $publicUrl;
+    private ?array $mediaColumns = null;
 
     public function __construct()
     {
@@ -34,7 +35,7 @@ class MediaService
             throw new \RuntimeException('Invalid image type. Allowed: JPEG, PNG, WebP, GIF', 400);
         }
 
-        $fileData = base64_decode($data['fileDataBase64'], true);
+        $fileData = $this->decodeBase64ImageData((string) $data['fileDataBase64']);
         if ($fileData === false) {
             throw new \RuntimeException('Invalid base64 data', 400);
         }
@@ -63,25 +64,74 @@ class MediaService
             mkdir($fullPath, 0755, true);
         }
 
-        file_put_contents($fullPath . $filename, $fileData);
+        if (file_put_contents($fullPath . $filename, $fileData) === false) {
+            throw new \RuntimeException('Failed to write uploaded file', 500);
+        }
 
+        $publicUrl = rtrim($this->publicUrl, '/') . '/' . $filename;
         $imageData = [
-            'id'                 => $id,
-            'file_path'          => $filename,
-            'public_url'         => rtrim($this->publicUrl, '/') . '/' . $filename,
-            'original_file_name' => $data['fileName'],
-            'mime_type'          => $mimeType,
-            'title'              => $data['title'] ?? null,
-            'alt_text'           => $data['alt'] ?? null,
-            'caption'            => $data['caption'] ?? null,
-            'marketing_meta'     => isset($data['marketingMeta']) ? json_encode($data['marketingMeta']) : null,
-            'uploaded_by'        => $userId,
-            'active'             => true,
+            'id'          => $id,
+            'mime_type'   => $mimeType,
+            'alt_text'    => $data['alt'] ?? null,
+            'caption'     => $data['caption'] ?? null,
+            'uploaded_by' => $userId,
+            'active'      => true,
         ];
 
-        $this->imageModel->insert($imageData);
+        if ($this->hasMediaColumn('file_path')) {
+            $imageData['file_path'] = $filename;
+        }
+        if ($this->hasMediaColumn('public_url')) {
+            $imageData['public_url'] = $publicUrl;
+        }
+        if ($this->hasMediaColumn('original_file_name')) {
+            $imageData['original_file_name'] = $data['fileName'];
+        }
+        if ($this->hasMediaColumn('title')) {
+            $imageData['title'] = $data['title'] ?? null;
+        }
+        if ($this->hasMediaColumn('marketing_meta')) {
+            $imageData['marketing_meta'] = isset($data['marketingMeta']) ? json_encode($data['marketingMeta']) : null;
+        }
 
-        return $this->imageModel->find($id)->toArray();
+        // Legacy media schema compatibility.
+        if ($this->hasMediaColumn('filename')) {
+            $imageData['filename'] = $filename;
+        }
+        if ($this->hasMediaColumn('original_name')) {
+            $imageData['original_name'] = $data['fileName'];
+        }
+        if ($this->hasMediaColumn('url')) {
+            $imageData['url'] = $publicUrl;
+        }
+        if ($this->hasMediaColumn('size')) {
+            $imageData['size'] = strlen($fileData);
+        }
+        if ($this->hasMediaColumn('folder')) {
+            $imageData['folder'] = 'general';
+        }
+        if ($this->hasMediaColumn('width') || $this->hasMediaColumn('height')) {
+            $dimensions = @getimagesizefromstring($fileData);
+            if (is_array($dimensions)) {
+                if ($this->hasMediaColumn('width')) {
+                    $imageData['width'] = (int) $dimensions[0];
+                }
+                if ($this->hasMediaColumn('height')) {
+                    $imageData['height'] = (int) $dimensions[1];
+                }
+            }
+        }
+
+        if ($this->imageModel->insert($imageData) === false) {
+            throw new \RuntimeException('Failed to save image metadata', 500);
+        }
+
+        $saved = $this->imageModel->find($id);
+        if (!$saved) {
+            throw new \RuntimeException('Image saved but could not be loaded', 500);
+        }
+
+        return $this->normalizeImageOutput($saved->toArray());
     }
 
     /**
@@ -95,25 +145,37 @@ class MediaService
         }
 
         $updateData = [];
-        $fields = ['title', 'alt' => 'alt_text', 'caption', 'marketingMeta' => 'marketing_meta'];
+        $fieldMap = [
+            ['alt', 'alt_text'],
+            ['alt_text', 'alt_text'],
+            ['caption', 'caption'],
+            ['title', 'title'],
+            ['marketingMeta', 'marketing_meta'],
+            ['marketing_meta', 'marketing_meta'],
+        ];
 
-        foreach ($fields as $input => $dbField) {
-            $key = is_int($input) ? $dbField : $input;
-            $col = $dbField;
-            if (array_key_exists($key, $data)) {
-                $value = $data[$key];
-                if ($col === 'marketing_meta' && is_array($value)) {
-                    $value = json_encode($value);
-                }
-                $updateData[$col] = $value;
+        foreach ($fieldMap as [$inputKey, $dbColumn]) {
+            if (!$this->hasMediaColumn($dbColumn) || !array_key_exists($inputKey, $data)) {
+                continue;
             }
+
+            $value = $data[$inputKey];
+            if ($dbColumn === 'marketing_meta' && is_array($value)) {
+                $value = json_encode($value);
+            }
+            $updateData[$dbColumn] = $value;
         }
 
         if (!empty($updateData)) {
             $this->imageModel->update($id, $updateData);
         }
 
-        return $this->imageModel->find($id)->toArray();
+        $updated = $this->imageModel->find($id);
+        if (!$updated) {
+            throw new \RuntimeException('Image not found', 404);
+        }
+
+        return $this->normalizeImageOutput($updated->toArray());
     }
 
     /**
@@ -139,5 +201,133 @@ class MediaService
             random_int(0, 0x3fff) | 0x8000,
             random_int(0, 0xffff), random_int(0, 0xffff), random_int(0, 0xffff)
         );
+    }
+
+    /**
+     * Decode image payload from plain base64, base64url, or data URI formats.
+     */
+    private function decodeBase64ImageData(string $base64): string|false
+    {
+        $value = trim($base64);
+
+        if (preg_match('/^data:[^;]+;base64,(.+)$/s', $value, $matches) === 1) {
+            $value = $matches[1];
+        }
+
+        $value = preg_replace('/\s+/', '', $value) ?? '';
+        $value = strtr($value, '-_', '+/');
+
+        $padding = strlen($value) % 4;
+        if ($padding > 0) {
+            $value .= str_repeat('=', 4 - $padding);
+        }
+
+        return base64_decode($value, true);
+    }
+
+    private function hasMediaColumn(string $column): bool
+    {
+        if ($this->mediaColumns === null) {
+            $db = db_connect();
+            $this->mediaColumns = array_map('strtolower', $db->getFieldNames('media_images'));
+        }
+
+        return in_array(strtolower($column), $this->mediaColumns, true);
+    }
+
+    private function normalizeImageOutput(array $row): array
+    {
+        if (!array_key_exists('file_path', $row) && array_key_exists('filename', $row)) {
+            $row['file_path'] = $row['filename'];
+        }
+        if (!array_key_exists('public_url', $row) && array_key_exists('url', $row)) {
+            $row['public_url'] = $row['url'];
+        }
+        if (!array_key_exists('original_file_name', $row) && array_key_exists('original_name', $row)) {
+            $row['original_file_name'] = $row['original_name'];
+        }
+
+        if ((!array_key_exists('filePath', $row) || empty($row['filePath'])) && !empty($row['file_path'])) {
+            $row['filePath'] = $row['file_path'];
+        }
+        if ((!array_key_exists('publicUrl', $row) || empty($row['publicUrl'])) && !empty($row['public_url'])) {
+            $row['publicUrl'] = $row['public_url'];
+        }
+        if ((!array_key_exists('originalFileName', $row) || empty($row['originalFileName'])) && !empty($row['original_file_name'])) {
+            $row['originalFileName'] = $row['original_file_name'];
+        }
+        if ((!array_key_exists('mimeType', $row) || empty($row['mimeType'])) && !empty($row['mime_type'])) {
+            $row['mimeType'] = $row['mime_type'];
+        }
+        if ((!array_key_exists('alt', $row) || $row['alt'] === null || $row['alt'] === '') && !empty($row['alt_text'])) {
+            $row['alt'] = $row['alt_text'];
+        }
+        if ((!array_key_exists('alt', $row) || $row['alt'] === null || $row['alt'] === '') && !empty($row['altText'])) {
+            $row['alt'] = $row['altText'];
+        }
+        if ((!array_key_exists('uploadedBy', $row) || empty($row['uploadedBy'])) && !empty($row['uploaded_by'])) {
+            $row['uploadedBy'] = $row['uploaded_by'];
+        }
+        if (!array_key_exists('title', $row) || $row['title'] === null) {
+            $row['title'] = '';
+        }
+        if (!array_key_exists('caption', $row) || $row['caption'] === null) {
+            $row['caption'] = '';
+        }
+        if (!array_key_exists('marketingMeta', $row) || $row['marketingMeta'] === null) {
+            $row['marketingMeta'] = [];
+        }
+        if (array_key_exists('createdAt', $row) && is_array($row['createdAt'])) {
+            $row['createdAt'] = $row['createdAt']['date'] ?? null;
+        }
+        if (array_key_exists('createdAt', $row) && is_object($row['createdAt'])) {
+            if (isset($row['createdAt']->date)) {
+                $row['createdAt'] = $row['createdAt']->date;
+            } elseif (method_exists($row['createdAt'], '__toString')) {
+                $row['createdAt'] = (string) $row['createdAt'];
+            }
+        }
+        if ((!array_key_exists('createdAt', $row) || $row['createdAt'] === null) && array_key_exists('created_at', $row)) {
+            if (is_array($row['created_at'])) {
+                $row['createdAt'] = $row['created_at']['date'] ?? null;
+            } elseif (is_object($row['created_at'])) {
+                if (isset($row['created_at']->date)) {
+                    $row['createdAt'] = $row['created_at']->date;
+                } elseif (method_exists($row['created_at'], '__toString')) {
+                    $row['createdAt'] = (string) $row['created_at'];
+                } else {
+                    $row['createdAt'] = null;
+                }
+            } else {
+                $row['createdAt'] = $row['created_at'];
+            }
+        }
+        if (array_key_exists('updatedAt', $row) && is_array($row['updatedAt'])) {
+            $row['updatedAt'] = $row['updatedAt']['date'] ?? null;
+        }
+        if (array_key_exists('updatedAt', $row) && is_object($row['updatedAt'])) {
+            if (isset($row['updatedAt']->date)) {
+                $row['updatedAt'] = $row['updatedAt']->date;
+            } elseif (method_exists($row['updatedAt'], '__toString')) {
+                $row['updatedAt'] = (string) $row['updatedAt'];
+            }
+        }
+        if ((!array_key_exists('updatedAt', $row) || $row['updatedAt'] === null) && array_key_exists('updated_at', $row)) {
+            if (is_array($row['updated_at'])) {
+                $row['updatedAt'] = $row['updated_at']['date'] ?? null;
+            } elseif (is_object($row['updated_at'])) {
+                if (isset($row['updated_at']->date)) {
+                    $row['updatedAt'] = $row['updated_at']->date;
+                } elseif (method_exists($row['updated_at'], '__toString')) {
+                    $row['updatedAt'] = (string) $row['updated_at'];
+                } else {
+                    $row['updatedAt'] = null;
+                }
+            } else {
+                $row['updatedAt'] = $row['updated_at'];
+            }
+        }
+
+        return $row;
     }
 }

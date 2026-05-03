@@ -11,6 +11,7 @@ use App\Models\AdSlotModel;
 use App\Models\HomeLayoutConfigModel;
 use App\Models\EngagementEventModel;
 use App\Services\PortalNewsSerializer;
+use App\Support\AssetUrl;
 
 class PublicApiController extends BaseApiController
 {
@@ -293,14 +294,31 @@ class PublicApiController extends BaseApiController
 
         $authorIds = [];
         foreach ($rows as $row) {
-            if (!empty($row['author_id'])) {
-                $authorIds[] = (string) $row['author_id'];
+            $authorId = $row['author_id'] ?? $row['authorId'] ?? null;
+            if (!empty($authorId)) {
+                $authorIds[] = (string) $authorId;
             }
         }
         $authorsById = PortalNewsSerializer::loadAuthorsMap($db, array_values(array_unique($authorIds)));
 
         $serialized = [];
         foreach ($rows as $row) {
+            if (!array_key_exists('author_id', $row) && array_key_exists('authorId', $row)) {
+                $row['author_id'] = $row['authorId'];
+            }
+            if (!array_key_exists('cover_image_url', $row) && array_key_exists('heroImage', $row)) {
+                $row['cover_image_url'] = AssetUrl::normalize(is_string($row['heroImage']) ? $row['heroImage'] : null);
+            }
+            if (!array_key_exists('published_at', $row) && array_key_exists('publishAt', $row)) {
+                $row['published_at'] = $row['publishAt'];
+            }
+            if (!array_key_exists('excerpt', $row) && array_key_exists('summary', $row)) {
+                $row['excerpt'] = $row['summary'];
+            }
+            if (!array_key_exists('body', $row) && array_key_exists('content', $row)) {
+                $row['body'] = $row['content'];
+            }
+
             $serialized[] = PortalNewsSerializer::mapNewsRow($row, $categoriesByNews, $tagsByNews, $authorsById);
         }
 
